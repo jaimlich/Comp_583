@@ -1,0 +1,5 @@
+# ignore .venv (virtual enviornment) folder
+backend/.venv/*
+backend/.venv/**
+backend/.venv/**/*
+

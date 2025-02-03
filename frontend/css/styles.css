@@ -1,0 +1,43 @@
+/* styles.css */
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    background-color: #007BFF;
+    color: white;
+    padding: 1rem;
+    text-align: center;
+}
+
+#map {
+    height: 400px;
+    width: 100%;
+    background-color: #eee;
+}
+
+#search-container {
+    margin: 1rem;
+    text-align: center;
+}
+
+#location-input {
+    width: 60%;
+    padding: 0.5rem;
+    font-size: 1rem;
+}
+
+#search-btn {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+}
+
+#weather-info {
+    margin: 1rem;
+    padding: 1rem;
+    background-color: #f8f8f8;
+    border: 1px solid #ddd;
+}
