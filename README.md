@@ -19,6 +19,10 @@ Snow Mountain Tracker is a web application that helps users locate nearby mounta
    OR
    python3 -m venv .venv --without-pip
    source venv/bin/activate  # On Windows: .venv\Scripts\Activate.ps1
+   ```
+   Confirm your enviornment is correct by running the following commands to make sure you are using the virtual Python enviornment<p>
+   Linux/OS: ```which python``` OR ```which python3```<p>
+   Windows: ```where python```OR ```where python3```<p>
 3. Install dependencies
     ```pip install -r requirements.txt```
 4. Run the Flask app:
