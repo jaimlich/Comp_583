@@ -1,0 +1,26 @@
+{
+    "name": "smt-frontend",
+    "version": "1.0.0",
+    "scripts": {
+        "dev": "next dev",
+        "build": "next build",
+        "start": "next start"
+    },
+    "dependencies": {
+        "@date-io/dayjs": "^3.2.0",
+        "@emotion/react": "^11.14.0",
+        "@emotion/styled": "^11.14.0",
+        "@mui/icons-material": "^6.4.5",
+        "@mui/lab": "^6.0.0-beta.28",
+        "@mui/material": "^6.4.5",
+        "@mui/system": "^6.4.3",
+        "@mui/x-date-pickers": "^7.27.0",
+        "axios": "^1.7.9",
+        "dayjs": "^1.11.13",
+        "mapbox-gl": "^2.8.2",
+        "next": "latest",
+        "react": "latest",
+        "react-dom": "latest",
+        "smt-frontend": "file:"
+    }
+}
