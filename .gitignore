@@ -3,3 +3,5 @@ backend/.venv/*
 backend/.venv/**
 backend/.venv/**/*
 
+583
+backend/__pycache__/config.cpython-312.pyc

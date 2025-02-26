@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snow Mountain Tracker - Register</title>
+    <link rel="stylesheet" href="static/css/styles.css">
+    <!-- You can include a CSS framework like Bootstrap if desired -->
+    <!-- Example: <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"> -->
+</head>
+<body>
+    <header>
+        <h1>Snow Mountain Tracker</h1>
+        <p>Find nearby mountains with current or forecasted snow conditions.</p>
+        <nav>
+            <ul style="list-style-type: none; padding: 0;">
+                <li style="display: inline; margin-right: 10px;"><a href="/" style="text-decoration: none; color: white;">Home</a></li>
+                <li style="display: inline; margin-right: 10px;"><a href="/about" style="text-decoration: none; color: white;">About</a></li>
+                <li style="display: inline; margin-right: 10px;"><a href="/contact" style="text-decoration: none; color: white;">Contact</a></li>
+            </ul>
+        </nav>
+        <div id="user-info" style="float: right; color: white;">
+            <a href="/login" style="color: white;">Login</a>
+            <a href="/register" style="color: white;">Register</a>
+            <a href="/logout" style="color: white;">Logout</a>
+        </div>
+    </header>
+    <main>
+        <h2>Register</h2>
+        <form action="/register" method="post">
+            <div>
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div>
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div>
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <div>
+                <label for="confirm-password">Confirm Password:</label>
+                <input type="password" id="confirm-password" name="confirm-password" required>
+            </div>
+            <div>
+                <button type="submit">Register</button>
+            </div>
+        </form>
+    </main>
+    <script src="js/main.js"></script>
+</body>
+</html>

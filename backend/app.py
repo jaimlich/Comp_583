@@ -1,6 +1,6 @@
 # app.py
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 from flask_caching import Cache
 import requests
 from config import Config
@@ -45,6 +45,31 @@ def get_weather():
 def user_location():
     location = get_user_location()
     return jsonify(location)
+@app.route('/api/resorts', methods=['GET'])
+def get_resorts():
+    # Example resorts data
+    resorts = [
+        {"name": "Mountain High", "lat": 34.3733, "lon": -117.6890},
+        {"name": "Big Bear Mountain Resort", "lat": 34.2366, "lon": -116.8896},
+        {"name": "Snow Valley Mountain Resort", "lat": 34.2254, "lon": -117.0371},
+        {"name": "Mt. Baldy Resort", "lat": 34.2361, "lon": -117.6587}
+    ]
+    return jsonify(resorts)
+@app.route('/register')
+def register():
+    return render_template('register.html')
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        # Handle login logic here
+        username = request.form['username']
+        password = request.form['password']
+        # For demonstration, just return the username
+        return jsonify({'message': f'Logged in as {username}'})
+    return render_template('login.html')
+@app.route('/')
+def index():
+    return render_template('home.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
