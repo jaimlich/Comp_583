@@ -13,13 +13,24 @@ const Calendar = () => {
     const fetchBookings = async () => {
       try {
         const dateStr = selectedDate.format('YYYY-MM-DD');
-        const response = await fetch(`/api/reservations?date=${dateStr}`);
+        // const response = await fetch(`/api/reservations?date=${dateStr}`);
+        const response = await fetch(`http://localhost:5000/api/reservations?date=${dateStr}`);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
         const data = await response.json();
-        setBookings(data);
+        console.log('Fetched bookings:', data); // Debugging log
+
+        // Ensure the data is an array before setting state
+        setBookings(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error('Error fetching bookings:', error);
+        setBookings([]); // Fallback to empty array to avoid .map errors
       }
     };
+
     fetchBookings();
   }, [selectedDate]);
 
@@ -33,13 +44,19 @@ const Calendar = () => {
           onChange={(newValue) => setSelectedDate(newValue)}
           slots={{ textField: (params) => <TextField {...params} /> }}
         />
-        <List>
-          {bookings.map((booking, index) => (
-            <ListItem key={index} divider>
-              <ListItemText primary={booking.name} secondary={`Mountain: ${booking.mountain}, Date: ${booking.date}`} />
-            </ListItem>
-          ))}
-        </List>
+        {bookings.length > 0 ? (
+          <List>
+            {bookings.map((booking, index) => (
+              <ListItem key={index} divider>
+                <ListItemText primary={booking.name} secondary={`Mountain: ${booking.mountain}, Date: ${booking.date}`} />
+              </ListItem>
+            ))}
+          </List>
+        ) : (
+          <Typography variant="body2" sx={{ mt: 2 }}>
+            No bookings found for this date.
+          </Typography>
+        )}
       </Box>
     </LocalizationProvider>
   );

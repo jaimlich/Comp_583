@@ -36,14 +36,9 @@ const popularMountains = [
   // Add more mountain entries as needed
 ];
 
-router.get('/', async (req, res) => {
+router.get('/', (req, res) => {
   try {
-    // Example: Replace this with real mountain data
-    const mountains = [
-      { id: 1, name: "Big Bear", lat: 34.2439, lon: -116.9114 },
-      { id: 2, name: "Mammoth Mountain", lat: 37.6308, lon: -119.0322 }
-    ];
-    res.json(mountains);
+    res.json(popularMountains);
   } catch (error) {
     res.status(500).json({ error: 'Error fetching mountains' });
   }

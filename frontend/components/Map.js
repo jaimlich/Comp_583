@@ -28,14 +28,19 @@ const Map = () => {
           .forEach(el => el.style.display = 'none');
     });
 
-    fetch('/api/mountains')
-    .then(response => response.json())
-    .then(data => {
-      console.log("Fetched mountain data:", data); // Debugging log
-      setMountains(data);
-    })
-    .catch(error => console.error("Error fetching mountain data:", error));
-  
+fetch('/api/mountains')
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    return response.json();
+  })
+  .then(data => {
+    console.log("Fetched mountain data:", data);
+    setMountains(data);
+  })
+  .catch(error => console.error("Error fetching mountain data:", error));
+  }, []);
 
   useEffect(() => {
     mountains.forEach((mountain) => {
