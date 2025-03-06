@@ -8,3 +8,7 @@ node_modules/
 # Build outputs
 .next/
 dist/
+
+# vscode
+.vscode/
+vscode/
