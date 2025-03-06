@@ -1,9 +1,10 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 
-const Map = ({ mountains }) => {
+const Map = () => {
   const mapContainer = useRef(null);
   const mapInstance = useRef(null);
+  const [mountains, setMountains] = useState([]);
 
   useEffect(() => {
     if (!process.env.NEXT_PUBLIC_MAPBOX_API_KEY) {
@@ -16,45 +17,42 @@ const Map = ({ mountains }) => {
       mapInstance.current = new mapboxgl.Map({
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/streets-v11',
-        center: [-117.1611, 32.7157], // Default to Southern California
-        zoom: 10,
+        center: [-116.823348, 37.621193], // Default to Southern California
+        zoom: 6,
       });
     }
 
     mapInstance.current.on('load', () => {
       console.log("Map loaded");
-
-      // Remove Mapbox copyright/footer
       document.querySelectorAll('.mapboxgl-ctrl-bottom-right, .mapboxgl-ctrl-bottom-left')
           .forEach(el => el.style.display = 'none');
-  });
+    });
 
-    const getIcon = (hasSnow) => {
-      if (hasSnow === "Snowing") return "snowflake-icon.png";
-      return "mountain-icon.png";
-  };
+    fetch('/api/mountains')
+    .then(response => response.json())
+    .then(data => {
+      console.log("Fetched mountain data:", data); // Debugging log
+      setMountains(data);
+    })
+    .catch(error => console.error("Error fetching mountain data:", error));
   
+
+  useEffect(() => {
     mountains.forEach((mountain) => {
       const el = document.createElement('div');
       el.className = 'marker';
-      let iconUrl = '/icons/mountain_no_snow.png';
-      if (mountain.hasSnow) {
-        iconUrl = '/icons/mountain_snow.png';
-      } else if (mountain.forecastSnow) {
-        iconUrl = '/icons/mountain_forecast.png';
-      }
-
-      el.style.backgroundImage = `url(/icons/${getIcon(mountain.hasSnow)})`;
+      el.style.backgroundImage = `url(/icons/mountain.png)`;
       el.style.width = '40px';
       el.style.height = '40px';
       el.style.backgroundSize = 'cover';
       el.style.cursor = 'pointer';
       el.title = mountain.name;
 
-      if (!isNaN(mountain.longitude) && !isNaN(mountain.latitude)) {
+      if (!isNaN(mountain.lon) && !isNaN(mountain.lat)) {
         new mapboxgl.Marker(el)
-          .setLngLat([mountain.longitude, mountain.latitude])
-          .setPopup(new mapboxgl.Popup({ offset: 25 }).setText(`${mountain.name}: ${mountain.weather}`))
+          .setLngLat([mountain.lon, mountain.lat])
+          .setPopup(new mapboxgl.Popup({ offset: 25 })
+            .setHTML(`<h3>${mountain.name}</h3><p>Latitude: ${mountain.lat}, Longitude: ${mountain.lon}</p>`))
           .addTo(mapInstance.current);
       } else {
         console.error(`Invalid coordinates for ${mountain.name}:`, mountain);
@@ -62,10 +60,7 @@ const Map = ({ mountains }) => {
     });
   }, [mountains]);
 
-  return <div ref={mapContainer} style={
-    { width: '100%',
-      height: '100%' }
-    } />;
+  return <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />;
 };
 
 export default Map;
