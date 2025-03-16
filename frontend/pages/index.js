@@ -13,7 +13,7 @@ const Home = () => {
   // Fetch mountain data (default is Southern California popular mountains)
   const fetchMountains = async (query = 'Southern California') => {
     try {
-      const response = await fetch(`http://localhost:5000/api/mountains?query=${encodeURIComponent(query)}`);
+      const response = await fetch(`http://localhost:3000/api/mountains?query=${encodeURIComponent(query)}`);
       const text = await response.text(); // Read response as text first
   
       try {

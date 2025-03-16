@@ -8,7 +8,7 @@ const roadClosuresRoutes = require('./routes/roadClosures');
 const reservationsRoutes = require('./routes/reservations');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());

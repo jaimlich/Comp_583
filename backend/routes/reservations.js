@@ -3,7 +3,7 @@ const router = express.Router();
 const db = require('../models/database');
 
 // Check if database is enabled
-const DATABASE_ENABLED = process.env.DATABASE_ENABLED === 'true';
+const DATABASE_ENABLED = process.env.DATABASE_ENABLED === 'false';
 
 // Create a new reservation (booking)
 router.post('/', async (req, res) => {

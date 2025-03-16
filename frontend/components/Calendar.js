@@ -13,8 +13,8 @@ const Calendar = () => {
     const fetchBookings = async () => {
       try {
         const dateStr = selectedDate.format('YYYY-MM-DD');
-        // const response = await fetch(`/api/reservations?date=${dateStr}`);
-        const response = await fetch(`http://localhost:5000/api/reservations?date=${dateStr}`);
+        const response = await fetch(`/api/reservations?date=${dateStr}`);
+        // const response = await fetch(`http://localhost:5000/api/reservations?date=${dateStr}`);
 
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);

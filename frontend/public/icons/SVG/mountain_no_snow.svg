@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <!-- Mountain base -->
+  <polygon points="8,56 32,16 56,56" fill="#8B8B8B" stroke="#000" stroke-width="2"/>
+  <!-- Trees -->
+  <g transform="translate(18,42)">
+    <polygon points="0,10 5,0 10,10" fill="#4CAF50" stroke="#000" stroke-width="1"/>
+    <rect x="4" y="10" width="2" height="4" fill="#8B4513" stroke="#000" stroke-width="1"/>
+  </g>
+  <g transform="translate(42,42)">
+    <polygon points="0,10 5,0 10,10" fill="#4CAF50" stroke="#000" stroke-width="1"/>
+    <rect x="4" y="10" width="2" height="4" fill="#8B4513" stroke="#000" stroke-width="1"/>
+  </g>
+</svg>

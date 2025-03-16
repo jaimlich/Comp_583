@@ -12,16 +12,16 @@ const pool = mysql.createPool({
 });
 
 exports.createReservation = async (req, res) => {
-  const { name, email, mountain, date } = req.body;
-  if (!name || !email || !mountain || !date) {
+  const { user_id, resort_id, booking_date } = req.body;
+  if (!user_id || !resort_id || !booking_date) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
   try {
     const [result] = await pool.execute(
-      'INSERT INTO reservations (name, email, mountain, date) VALUES (?, ?, ?, ?)',
-      [name, email, mountain, date]
+      'INSERT INTO bookings (user_id, resort_id, booking_date, status) VALUES (?, ?, ?, ?)',
+      [user_id, resort_id, booking_date, 'pending']
     );
-    res.json({ id: result.insertId, name, email, mountain, date });
+    res.json({ booking_id: result.insertId, user_id, resort_id, booking_date, status: 'pending' });
   } catch (error) {
     console.error('Reservation creation error:', error.message);
     res.status(500).json({ error: 'Error creating reservation' });
@@ -31,10 +31,10 @@ exports.createReservation = async (req, res) => {
 exports.getReservations = async (req, res) => {
   const { date } = req.query;
   try {
-    let query = 'SELECT * FROM reservations';
+    let query = 'SELECT b.*, u.name AS user_name, r.name AS resort_name FROM bookings b JOIN users u ON b.user_id = u.user_id JOIN resorts r ON b.resort_id = r.resort_id';
     const params = [];
     if (date) {
-      query += ' WHERE date = ?';
+      query += ' WHERE DATE(b.booking_date) = ?';
       params.push(date);
     }
     const [rows] = await pool.execute(query, params);
