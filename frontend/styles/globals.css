@@ -1,4 +1,43 @@
 /* Add any global styles here */
+
+/* Snowflake Animation Background */
+.snowflake-bg {
+  position: relative;
+  background: linear-gradient(to bottom, #1565c0, #1e88e5);
+  color: white;
+  text-align: center;
+  padding: 20px 0;
+  overflow: hidden;
+}
+
+.snowflake-bg::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('icons/SVG/mountain_no_snow.svg');
+  background-size: contain;
+  opacity: 0.3;
+  animation: snowfall 10s linear infinite;
+}
+
+@keyframes snowfall {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 0 100%;
+  }
+}
+
+@media (min-width: 1536px) {
+  .css-hhdjsd-MuiContainer-root {
+    max-width: 768px;
+  }
+}
+
 body {
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,

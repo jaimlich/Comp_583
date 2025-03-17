@@ -22,11 +22,15 @@ const Map = () => {
       });
     }
 
-    // mapInstance.current.on('load', () => {
-    //   console.log("Map loaded");
-    //   document.querySelectorAll('.mapboxgl-ctrl-bottom-right, .mapboxgl-ctrl-bottom-left')
-    //       .forEach(el => el.style.display = 'none');
-    // });
+    mapInstance.current.on('load', () => {
+      console.log("Map loaded");
+      document.querySelectorAll('.mapboxgl-ctrl-bottom-right, .mapboxgl-ctrl-bottom-left')
+          .forEach(el => el.style.display = 'none');
+    });
+
+    mapInstance.current.on("load", () => {
+      mapInstance.current.resize(); // Ensures it loads properly
+    });
 
 fetch('/api/mountains')
   .then(response => {
