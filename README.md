@@ -31,6 +31,11 @@ Snow Mountain Tracker is a free-to-use application that provides real-time snowf
 - Use PostgreSQL to store booking data and other application data.
 - Update the `DATABASE_URL` in `backend/.env` with your PostgreSQL connection string.
 
+## Free-tier API Usage Limits
+1. Visual Crossing (Weather API): Limit at 1K per day
+2. Mapbox (Map API): 50K total
+3. 
+
 ## Future Mobile Porting
 - The frontend built with React/Next.js can share components with a React Native mobile application for easy porting to iOS.
 

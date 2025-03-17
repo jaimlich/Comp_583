@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
+import { hydrateRoot } from 'react-dom/client';
 import { Box, TextField, Button } from '@mui/material';
 import Sidebar from '../components/Sidebar';
 import Map from '../components/Map';

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { TextField, Box, List, ListItem, ListItemText, Typography } from '@mui/material';
 import dayjs from 'dayjs';
@@ -10,28 +9,30 @@ const Calendar = () => {
   const [bookings, setBookings] = useState([]);
 
   useEffect(() => {
+    let isMounted = true; // Cleanup mechanism
+
     const fetchBookings = async () => {
       try {
         const dateStr = selectedDate.format('YYYY-MM-DD');
         const response = await fetch(`/api/reservations?date=${dateStr}`);
-        // const response = await fetch(`http://localhost:5000/api/reservations?date=${dateStr}`);
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
         const data = await response.json();
         console.log('Fetched bookings:', data); // Debugging log
 
-        // Ensure the data is an array before setting state
-        setBookings(Array.isArray(data) ? data : []);
+        if (isMounted) setBookings(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error('Error fetching bookings:', error);
-        setBookings([]); // Fallback to empty array to avoid .map errors
+        if (isMounted) setBookings([]);
       }
     };
 
     fetchBookings();
+    
+    return () => {
+      isMounted = false; // Cleanup on component unmount
+    };
   }, [selectedDate]);
 
   return (
@@ -42,13 +43,16 @@ const Calendar = () => {
           label="Select date"
           value={selectedDate}
           onChange={(newValue) => setSelectedDate(newValue)}
-          slots={{ textField: (params) => <TextField {...params} /> }}
+          textField={(params) => <TextField {...params} />}
         />
         {bookings.length > 0 ? (
           <List>
             {bookings.map((booking, index) => (
               <ListItem key={index} divider>
-                <ListItemText primary={booking.name} secondary={`Mountain: ${booking.mountain}, Date: ${booking.date}`} />
+                <ListItemText
+                  primary={booking.name}
+                  secondary={`Mountain: ${booking.mountain}, Date: ${booking.date}`}
+                />
               </ListItem>
             ))}
           </List>

@@ -22,11 +22,11 @@ const Map = () => {
       });
     }
 
-    mapInstance.current.on('load', () => {
-      console.log("Map loaded");
-      document.querySelectorAll('.mapboxgl-ctrl-bottom-right, .mapboxgl-ctrl-bottom-left')
-          .forEach(el => el.style.display = 'none');
-    });
+    // mapInstance.current.on('load', () => {
+    //   console.log("Map loaded");
+    //   document.querySelectorAll('.mapboxgl-ctrl-bottom-right, .mapboxgl-ctrl-bottom-left')
+    //       .forEach(el => el.style.display = 'none');
+    // });
 
 fetch('/api/mountains')
   .then(response => {
@@ -46,18 +46,22 @@ fetch('/api/mountains')
     mountains.forEach((mountain) => {
       const el = document.createElement('div');
       el.className = 'marker';
-      el.style.backgroundImage = `url(/icons/mountain.png)`;
-      el.style.width = '40px';
-      el.style.height = '40px';
+      el.style.backgroundImage = `url(icons/SVG/mountain_no_snow.svg)`;
+      el.style.width = '50px';
+      el.style.height = '50px';
       el.style.backgroundSize = 'cover';
       el.style.cursor = 'pointer';
       el.title = mountain.name;
 
-      if (!isNaN(mountain.lon) && !isNaN(mountain.lat)) {
+      if (!isNaN(mountain.longitude) && !isNaN(mountain.latitude)) {
         new mapboxgl.Marker(el)
-          .setLngLat([mountain.lon, mountain.lat])
-          .setPopup(new mapboxgl.Popup({ offset: 25 })
-            .setHTML(`<h3>${mountain.name}</h3><p>Latitude: ${mountain.lat}, Longitude: ${mountain.lon}</p>`))
+          .setLngLat([mountain.longitude, mountain.latitude])
+          .setPopup
+          (new mapboxgl.Popup({ offset: 25 })
+            .setHTML(`<h3>${mountain.name}</h3>
+              <p>Latitude: ${mountain.latitude}, Longitude: ${mountain.longitude}</p>
+              <p>Weather: ${mountain.weather}</p>`)
+          )
           .addTo(mapInstance.current);
       } else {
         console.error(`Invalid coordinates for ${mountain.name}:`, mountain);
