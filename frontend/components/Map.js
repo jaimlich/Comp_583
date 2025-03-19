@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 
-const Map = () => {
+const Map = ({ center }) => {
   const mapContainer = useRef(null);
   const mapInstance = useRef(null);
   const [mountains, setMountains] = useState([]);
@@ -29,21 +29,21 @@ const Map = () => {
     });
 
     mapInstance.current.on("load", () => {
-      mapInstance.current.resize(); // Ensures it loads properly
+      mapInstance.current.resize();
     });
 
-fetch('/api/mountains')
-  .then(response => {
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    return response.json();
-  })
-  .then(data => {
-    console.log("Fetched mountain data:", data);
-    setMountains(data);
-  })
-  .catch(error => console.error("Error fetching mountain data:", error));
+    fetch('/api/mountains')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log("Fetched mountain data:", data);
+        setMountains(data);
+      })
+      .catch(error => console.error("Error fetching mountain data:", error));
   }, []);
 
   useEffect(() => {
@@ -60,11 +60,11 @@ fetch('/api/mountains')
       if (!isNaN(mountain.longitude) && !isNaN(mountain.latitude)) {
         new mapboxgl.Marker(el)
           .setLngLat([mountain.longitude, mountain.latitude])
-          .setPopup
-          (new mapboxgl.Popup({ offset: 25 })
-            .setHTML(`<h3>${mountain.name}</h3>
-              <p>Latitude: ${mountain.latitude}, Longitude: ${mountain.longitude}</p>
-              <p>Weather: ${mountain.weather}</p>`)
+          .setPopup(
+            new mapboxgl.Popup({ offset: 25 })
+              .setHTML(`<h3>${mountain.name}</h3>
+                <p>Latitude: ${mountain.latitude}, Longitude: ${mountain.longitude}</p>
+                <p>Weather: ${mountain.weather}</p>`)
           )
           .addTo(mapInstance.current);
       } else {
@@ -72,6 +72,17 @@ fetch('/api/mountains')
       }
     });
   }, [mountains]);
+
+  // Center map when `center` prop updates
+  useEffect(() => {
+    if (mapInstance.current && center) {
+      mapInstance.current.flyTo({
+        center: [center.lon, center.lat],
+        zoom: 10,
+        essential: true,
+      });
+    }
+  }, [center]);
 
   return <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />;
 };

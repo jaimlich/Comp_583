@@ -5,7 +5,6 @@ import {
   Button,
   MenuItem,
   Typography,
-  Grid,
   List,
   ListItem,
   ListItemText,
@@ -20,6 +19,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 
 const BookingSystem = ({ mountains = [] }) => {
   const [selectedDate, setSelectedDate] = useState(dayjs());
@@ -27,7 +27,7 @@ const BookingSystem = ({ mountains = [] }) => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    mountain: mountains.length > 0 ? mountains[0].name : "", // Default to first mountain if available
+    mountain: mountains.length > 0 ? mountains[0].name : "",
     date: dayjs(),
   });
 
@@ -67,22 +67,18 @@ const BookingSystem = ({ mountains = [] }) => {
 
   return (
     <Box sx={{ p: 3, borderTop: "1px solid #ccc" }}>
-      <Typography variant="h6" gutterBottom sx={{ textAlign: "center", fontSize: "1.3rem", fontWeight: "bold" }}>
-        🎟️ Book Ski Lift Tickets & 📅 Booking Calendar
-      </Typography>
-
       {mountains.length === 0 ? (
         <Typography variant="body2" sx={{ color: "gray", fontStyle: "italic", textAlign: "center" }}>
           Loading mountain data...
         </Typography>
       ) : (
-        <Grid container spacing={4} alignItems="stretch">
-          {/* Left Side: Booking Form */}
-          <Grid item xs={12} md={5}>
+        <Box sx={{ display: "flex", gap: 3 }}>
+          {/* 🎟️ Book Your Spot - Left Column */}
+          <Box sx={{ flex: 1 }}>
             <Card sx={{ p: 2, boxShadow: 3, borderRadius: "12px" }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
-                  🏔️ Book Your Spot
+                  🎟️ Book Your Spot
                 </Typography>
                 <TextField
                   label="Name"
@@ -102,7 +98,6 @@ const BookingSystem = ({ mountains = [] }) => {
                   fullWidth
                   sx={{ mb: 2 }}
                 />
-                {/* Mountain Dropdown */}
                 <TextField
                   select
                   label="Select Mountain"
@@ -119,7 +114,6 @@ const BookingSystem = ({ mountains = [] }) => {
                     </MenuItem>
                   ))}
                 </TextField>
-                {/* Date Picker */}
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <DatePicker
                     label="Select date"
@@ -133,17 +127,27 @@ const BookingSystem = ({ mountains = [] }) => {
                 </Button>
               </CardContent>
             </Card>
-          </Grid>
+          </Box>
 
-          {/* Middle Divider */}
-          <Grid item xs={12} md={1} sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
-            <Divider orientation="vertical" flexItem sx={{ height: "90%" }} />
-          </Grid>
-
-          {/* Right Side: Booking Calendar */}
-          <Grid item xs={12} md={6}>
+          {/* 📅 Calendar + Bookings - Right Column */}
+          <Box sx={{ flex: 1 }}>
             <Card sx={{ p: 2, boxShadow: 3, borderRadius: "12px" }}>
               <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  <CalendarMonthIcon sx={{ verticalAlign: "middle", mr: 1 }} /> Booking Calendar
+                </Typography>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <DatePicker
+                    views={["year", "month", "day"]}
+                    label="Select a booking date"
+                    value={selectedDate}
+                    onChange={handleDateChange}
+                    renderInput={(params) => <TextField {...params} fullWidth />}
+                  />
+                </LocalizationProvider>
+
+                <Divider sx={{ my: 2 }} />
+
                 <Typography variant="h6" gutterBottom>
                   📅 Your Bookings
                 </Typography>
@@ -153,7 +157,7 @@ const BookingSystem = ({ mountains = [] }) => {
                       <ListItem key={index} divider sx={{ display: "flex", justifyContent: "space-between" }}>
                         <ListItemText
                           primary={booking.name}
-                          secondary={`🏔️ ${booking.mountain} | 📅 ${booking.date}`}
+                          secondary={`🏔️ ${booking.mountain} | 📅 ${dayjs(booking.date).format("MMM D, YYYY")}`}
                         />
                         <Box>
                           <IconButton color="primary">
@@ -173,8 +177,8 @@ const BookingSystem = ({ mountains = [] }) => {
                 )}
               </CardContent>
             </Card>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       )}
     </Box>
   );

@@ -14,18 +14,17 @@ import {
 
 // Emoji/icon mapping for each field
 const icons = {
-  distance: "📍", // Pin icon
-  weather: "🌤️", // Weather icon (Changes dynamically)
-  temperature: "🌡️", // Thermometer icon
-  snowfallCurrent: "❄️", // Snow icon
-  snowfallLast24h: "☃️", // Snowfall in 24h icon
-  rainLast24h: "🌧️", // Rain icon
-  windSpeed: "💨", // Wind icon
-  visibility: "👀", // Visibility icon
-  chainsRequired: "⛓️", // Chains required icon
+  distance: "📍",
+  weather: "🌤️",
+  temperature: "🌡️",
+  snowfallCurrent: "❄️",
+  snowfallLast24h: "☃️",
+  rainLast24h: "🌧️",
+  visibility: "👀",
+  chainsRequired: "⛓️",
 };
 
-const Sidebar = ({ mountains }) => {
+const Sidebar = ({ mountains, setMapCenter }) => {
   const [selectedMountain, setSelectedMountain] = useState(null);
 
   const handleOpenDialog = (mountain) => {
@@ -36,6 +35,14 @@ const Sidebar = ({ mountains }) => {
     setSelectedMountain(null);
   };
 
+  const handleZoomToMountain = (mountain) => {
+    if (mountain.latitude && mountain.longitude) {
+      setMapCenter({ lat: mountain.latitude, lon: mountain.longitude });
+    } else {
+      alert("Coordinates not found for this mountain.");
+    }
+  };
+
   return (
     <Box sx={{ width: "300px", height: "70vh", overflowY: "auto", borderRight: "1px solid #ccc", p: 2 }}>
       <Typography variant="h6" gutterBottom>
@@ -44,50 +51,37 @@ const Sidebar = ({ mountains }) => {
       <List>
         {mountains.map((mountain, index) => (
           <React.Fragment key={index}>
-            <ListItem button onClick={() => handleOpenDialog(mountain)}>
+            <ListItem>
               <ListItemText
-                primary={mountain.name}
+                primary={
+                  <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <span>{mountain.name}</span>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      size="small"
+                      sx={{ ml: 1 }}
+                      onClick={() => handleZoomToMountain(mountain)}
+                    >
+                      Zoom
+                    </Button>
+                  </Box>
+                }
                 secondary={
                   <>
-                    <Typography variant="body2" component="span">
-                      {icons.distance} Distance: {mountain.distance || "N/A"} miles
-                    </Typography>
-                    <br />
-                    <Typography variant="body2" component="span">
-                      {icons.weather} Weather: {mountain.weather || "Unknown"}
-                    </Typography>
-                    <br />
-                    <Typography variant="body2" component="span">
-                      {icons.temperature} Temperature: {mountain.temperature}°F
-                    </Typography>
-                    <br />
-                    <Typography variant="body2" component="span">
-                      {icons.snowfallCurrent} Snow Depth: {mountain.snowfallCurrent || "0"} inches
-                    </Typography>
-                    <br />
-                    <Typography variant="body2" component="span">
-                      {icons.snowfallLast24h} Snow (Last 24h): {mountain.snowfallLast24h || "0"} inches
-                    </Typography>
-                    <br />
-                    <Typography variant="body2" component="span">
-                      {icons.rainLast24h} Rain (Last 24h): {mountain.rainLast24h || "0"} inches
-                    </Typography>
-                    <br />
-                    <Typography variant="body2" component="span">
-                      {icons.windSpeed} Wind Speed: {mountain.windSpeed} mph
-                    </Typography>
-                    <br />
-                    <Typography variant="body2" component="span">
-                      {icons.visibility} Visibility: {mountain.visibility} miles
-                    </Typography>
-                    <br />
+                    <Typography variant="body2">{icons.distance} Distance: {mountain.distance || "N/A"} miles</Typography>
+                    <Typography variant="body2">{icons.weather} Weather: {mountain.weather || "Unknown"}</Typography>
+                    <Typography variant="body2">{icons.temperature} Temperature: {mountain.temperature}°F</Typography>
+                    <Typography variant="body2">{icons.snowfallCurrent} Snow Depth: {mountain.snowfallCurrent || "0"} inches</Typography>
+                    <Typography variant="body2">{icons.snowfallLast24h} Snow (Last 24h): {mountain.snowfallLast24h || "0"} inches</Typography>
+                    <Typography variant="body2">{icons.rainLast24h} Rain (Last 24h): {mountain.rainLast24h || "0"} inches</Typography>
+                    <Typography variant="body2">{icons.visibility} Visibility: {mountain.visibility} miles</Typography>
                     {mountain.forecastSnow && (
                       <Typography variant="body2" color="primary">
                         ❄️ Snow expected in {mountain.forecastDays} days
                       </Typography>
                     )}
-                    <br />
-                    <Typography variant="body2" component="span" color={mountain.chainsRequired ? "error" : "inherit"}>
+                    <Typography variant="body2" color={mountain.chainsRequired ? "error" : "inherit"}>
                       {icons.chainsRequired} Chains Required: {mountain.chainsRequired ? "Yes" : "No"}
                     </Typography>
                   </>
