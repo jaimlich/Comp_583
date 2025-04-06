@@ -1,0 +1,16 @@
+{
+  "name": "Snow Mountain Tracker Dev",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "frontend",
+  "workspaceFolder": "/app",
+  "forwardPorts": [3000],
+  "postCreateCommand": "npm install",
+  "remoteUser": "root",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  }
+}

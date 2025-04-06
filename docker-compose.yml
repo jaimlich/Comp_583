@@ -1,22 +1,22 @@
 version: '3.9'
 
 services:
-  frontend:
+  smt_frontend:
     build:
       context: ./frontend
-      args:
-        NEXT_PUBLIC_MAPBOX_API_KEY: ${NEXT_PUBLIC_MAPBOX_API_KEY}
-        NEXT_PUBLIC_API_URL: http://backend:5000
+    container_name: smt_frontend
     ports:
       - "3000:3000"
     environment:
+      - NEXT_PUBLIC_API_URL=http://smt_backend:5000
       - NEXT_PUBLIC_MAPBOX_API_KEY=${NEXT_PUBLIC_MAPBOX_API_KEY}
-      - NEXT_PUBLIC_API_URL=http://backend:5000
     depends_on:
-      - backend
+      - smt_backend
 
-  backend:
-    build: ./backend
+  smt_backend:
+    build:
+      context: ./backend
+    container_name: smt_backend
     ports:
       - "5000:5000"
     env_file:
