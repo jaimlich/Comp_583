@@ -9,13 +9,30 @@ Snow Mountain Tracker is a free-to-use application that provides real-time snowf
 
 ## Setup Instructions
 
-### Backend
+### Running via Docker
+1. Install Docker
+   <br />Depending on what OS you use, check the link here: https://docs.docker.com/get-started/get-docker/
+   <br />*Note - on Windows, ensure you have added the bin folder of Docker as a system path.*
+   <br />Enviornment Path (example): ```C:\Program Files\Docker\Docker\resources\bin```
+   <br />
+2. Navigate to the root directory of this project
+   <br />
+   ```
+   backend/
+   database/
+   frontend/
+   ```
+3. Run the following command: ```docker-compose up --build```
+
+### Running the Web Application Locally
+
+#### Backend
 1. Navigate to the `backend/` folder.
 2. Run `npm install` to install dependencies.
 3. Create a `.env` file with your API keys and database connection details (see sample).
 4. Start the server with `npm run dev` for development or `npm start` for production.
 
-### Frontend
+#### Frontend
 1. Navigate to the `frontend/` folder.
 2. Run `npm install` to install dependencies.
 3. Create a `.env.local` file with your Mapbox token.

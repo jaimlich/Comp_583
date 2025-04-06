@@ -10,7 +10,9 @@ const reservationsRoutes = require('./routes/reservations');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+app.use(cors({
+  origin: '*', // Or restrict to http://localhost:3000 if needed
+}));
 app.use(express.json());
 
 // API routes

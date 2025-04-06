@@ -16,9 +16,10 @@
         "@mui/system": "^6.4.3",
         "@mui/x-date-pickers": "^7.27.0",
         "axios": "^1.7.9",
+        "cross-spawn": "^7.0.6",
         "dayjs": "^1.11.13",
         "mapbox-gl": "^2.15.0",
-        "next": "latest",
+        "next": "^15.2.4",
         "react": "latest",
         "react-dom": "latest",
         "smt-frontend": "file:"

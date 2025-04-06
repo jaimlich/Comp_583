@@ -63,8 +63,16 @@ const Map = ({ center }) => {
           .setPopup(
             new mapboxgl.Popup({ offset: 25 })
               .setHTML(`<h3>${mountain.name}</h3>
-                <p>Latitude: ${mountain.latitude}, Longitude: ${mountain.longitude}</p>
-                <p>Weather: ${mountain.weather}</p>`)
+                <p>🌤️ Weather: ${mountain.weather}</p>
+                <p>🌡️ Temperature: ${mountain.temperature}°F</p>
+                <p>❄️ Snow Depth: ${mountain.snowfallCurrent || "0"} inches</p>
+                <p>🌧️ Rain (Last 24h): ${mountain.rainLast24h || "0"} inches</p>
+                <p>🌨️ Snow (Last 24h): ${mountain.snowfallLast24h || "0"} inches</p>
+                <p>🌫️ Visibility: ${mountain.visibility} miles</p>
+                <p>🚗 Chains Required: ${mountain.chainsRequired ? "Yes" : "No"}</p>
+                ${mountain.forecastSnow && mountain.forecastDays ?
+                  `<p>❄️ Snow expected in ${mountain.forecastDays} days</p>` : ''}
+                `)
           )
           .addTo(mapInstance.current);
       } else {
