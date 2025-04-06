@@ -1,3 +1,6 @@
+# needs to get ignored
+.env.local
+
 node_modules
 .next
 .env.local

@@ -21,6 +21,8 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 
+const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
+
 const BookingSystem = ({ mountains = [] }) => {
   const [selectedDate, setSelectedDate] = useState(dayjs());
   const [bookings, setBookings] = useState([]);
@@ -43,7 +45,7 @@ const BookingSystem = ({ mountains = [] }) => {
 
   const handleBookingSubmit = async () => {
     try {
-      const response = await fetch("/api/reservations", {
+      const response = await fetch(`${baseUrl}/api/reservations`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),

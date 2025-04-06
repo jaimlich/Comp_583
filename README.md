@@ -9,6 +9,47 @@ Snow Mountain Tracker is a free-to-use application that provides real-time snowf
 
 ## Setup Instructions
 
+### **Enviornment Files to add for utilizing APIs**
+These instructions must be followed to utilize the APIs, for security reasons the API keys will not be displayed to the public.<br />
+Follow the steps below to recreate the ".env" files
+
+*Everywhere you see a ".env.example" or anything similar, you will remove the ".example" part of the file and input your own secret/personal API keys in there.*
+Listed below are all the locations of the .env files that you must edit/fill in with your API keys and other information.
+
+Mapbox API (Map): https://www.mapbox.com/
+IP Info (Gelocation): https://ipinfo.io/
+Visual Crossing API (Weather): https://www.visualcrossing.com/weather-api/
+MySQL (Database): https://www.mysql.com/
+
+1. Root Directory<br />
+/.env.example -> /.env
+```
+NEXT_PUBLIC_MAPBOX_API_KEY=your_mapbox_key_here
+```
+<br />
+
+2. Frontend Directory /frontend<br />
+/frontend/.env.local.example -> /frontend/.env.local
+```
+NEXT_PUBLIC_MAPBOX_API_KEY=your_mapbox_key_here
+NEXT_PUBLIC_API_URL=http://localhost:5000
+```
+
+3. Backend Directory /backend<br />
+/backend/.env.example -> /backend/.env<br />
+```
+PORT=5000
+IPINFO_TOKEN=ipinfo_token_here
+VISUAL_CROSSING_WEATHER_API_KEY=visual_crossing_weather_api_key_here
+REACT_APP_MAPBOX_TOKEN=react_app_mapbox_token_here
+NODE_ENV=development
+DATABASE_ENABLED=false
+MYSQL_HOST=mysql_host_here
+MYSQL_USER=mysql_user_here
+MYSQL_PASSWORD=mysql_password_here
+MYSQL_DATABASE=mysql_database_here
+```
+
 ### Running via Docker
 1. Install Docker
    <br />Depending on what OS you use, check the link here: https://docs.docker.com/get-started/get-docker/
@@ -23,6 +64,8 @@ Snow Mountain Tracker is a free-to-use application that provides real-time snowf
    frontend/
    ```
 3. Run the following command: ```docker-compose up --build```
+4. Visit the following webpage to view the frontend (main entry) of the web application: http://localhost:3000/ <br />
+   Visit the following webpage to view the backend (debugging) of the web applicaiton: http://localhost:5000/
 
 ### Running the Web Application Locally
 
@@ -45,8 +88,8 @@ Snow Mountain Tracker is a free-to-use application that provides real-time snowf
 - **CI/CD:** Use GitHub Actions or AWS CodePipeline for automated testing and deployment.
 
 ## Database Setup
-- Use PostgreSQL to store booking data and other application data.
-- Update the `DATABASE_URL` in `backend/.env` with your PostgreSQL connection string.
+- Use MySQL to store booking data and other application data.
+- Update the `DATABASE_URL` in `backend/.env` with your MySQL connection string.
 
 ## Free-tier API Usage Limits
 1. Visual Crossing (Weather API): Limit at 1K per day

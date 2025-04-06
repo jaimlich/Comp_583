@@ -2,10 +2,15 @@ version: '3.9'
 
 services:
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_MAPBOX_API_KEY: ${NEXT_PUBLIC_MAPBOX_API_KEY}
+        NEXT_PUBLIC_API_URL: http://backend:5000
     ports:
       - "3000:3000"
     environment:
+      - NEXT_PUBLIC_MAPBOX_API_KEY=${NEXT_PUBLIC_MAPBOX_API_KEY}
       - NEXT_PUBLIC_API_URL=http://backend:5000
     depends_on:
       - backend
