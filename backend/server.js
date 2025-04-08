@@ -6,6 +6,7 @@ const locationRoutes = require('./routes/location');
 const mountainsRoutes = require('./routes/mountains');
 const roadClosuresRoutes = require('./routes/roadClosures');
 const reservationsRoutes = require('./routes/reservations');
+const authRoutes = require('./routes/auth');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -20,6 +21,7 @@ app.use('/api/location', locationRoutes);
 app.use('/api/mountains', mountainsRoutes);
 app.use('/api/road-closures', roadClosuresRoutes);
 app.use('/api/reservations', reservationsRoutes);
+app.use('/api/auth', authRoutes);
 
 app.get('/', (req, res) => {
   res.send('Snow Mountain Tracker Backend is running!');

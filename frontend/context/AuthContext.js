@@ -18,7 +18,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     const res = await axios.post('/api/auth/login', { email, password });
-    Cookies.set('token', res.data.token, { expires: 1 });
+    Cookies.set('token', res.data.token, { expires: 1 }); // Store token for session
     setUser(res.data.user);
   };
 

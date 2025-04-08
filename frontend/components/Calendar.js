@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { LocalizationProvider, DateCalendar } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { TextField, Box, List, ListItem, ListItemText, Typography, Paper, Divider } from "@mui/material";
+import { List, ListItem, ListItemText, Typography, Paper, Divider } from "@mui/material";
 import dayjs from "dayjs";
 
 const Calendar = () => {
@@ -10,30 +10,35 @@ const Calendar = () => {
 
   useEffect(() => {
     let isMounted = true;
-
+  
     const fetchBookings = async () => {
+      const dateStr = selectedDate.format("YYYY-MM-DD");
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+  
       try {
-        const dateStr = selectedDate.format("YYYY-MM-DD");
-        const response = await fetch(`/api/reservations?date=${dateStr}`);
-
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-
+        const response = await fetch(`${baseUrl}/api/reservations?date=${dateStr}`);
+  
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+  
         const data = await response.json();
         console.log("Fetched bookings:", data);
-
+  
         if (isMounted) setBookings(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Error fetching bookings:", error);
         if (isMounted) setBookings([]);
       }
     };
-
+  
     fetchBookings();
-
+  
     return () => {
       isMounted = false;
     };
   }, [selectedDate]);
+  
 
   return (
     <Paper sx={{ p: 2, boxShadow: 3, borderRadius: "12px" }}>
@@ -53,11 +58,15 @@ const Calendar = () => {
       <Typography variant="h6" gutterBottom>
         📋 Your Bookings on {selectedDate.format("MMM D, YYYY")}
       </Typography>
+
       {bookings.length > 0 ? (
         <List>
           {bookings.map((booking, index) => (
             <ListItem key={index} divider>
-              <ListItemText primary={booking.name} secondary={`🏔️ ${booking.mountain}`} />
+              <ListItemText
+                primary={booking.user_name}
+                secondary={`🏔️ ${booking.resort_name}`}
+              />
             </ListItem>
           ))}
         </List>

@@ -16,8 +16,7 @@ const Home = () => {
   const [mountains, setMountains] = useState([]);
   const [mapCenter, setMapCenter] = useState({ lon: -116.823348, lat: 37.621193 }); // Default: SoCal
   const [mapKey, setMapKey] = useState(0);
-  const [showLogin, setShowLogin] = useState(false);
-  const [showRegister, setShowRegister] = useState(false);
+  const [modalType, setModalType] = useState(null); // null, 'login', 'register'
   const { user, logout } = useAuth();
 
   const fetchMountains = async (query = "Southern California") => {
@@ -114,10 +113,10 @@ const Home = () => {
               <Box sx={{ display: 'flex', gap: 1, ml: 'auto' }}>
                 {!user ? (
                   <>
-                    <Button variant="outlined" color="primary" onClick={() => setShowLogin(true)} sx={{ height: "56px" }}>
+                    <Button variant="outlined" color="primary" onClick={() => setModalType('login')} sx={{ height: "56px" }}>
                       Login
                     </Button>
-                    <Button variant="contained" color="secondary" onClick={() => setShowRegister(true)} sx={{ height: "56px" }}>
+                    <Button variant="contained" color="secondary" onClick={() => setModalType('register')} sx={{ height: "56px" }}>
                       Register
                     </Button>
                   </>
@@ -150,8 +149,19 @@ const Home = () => {
         </Box>
       </Container>
 
-      {showLogin && <LoginModal onClose={() => setShowLogin(false)} />}
-      {showRegister && <RegisterModal onClose={() => setShowRegister(false)} />}
+      {modalType === 'login' && (
+        <LoginModal
+          onClose={() => setModalType(null)}
+          onSwitchToRegister={() => setModalType('register')}
+        />
+      )}
+
+      {modalType === 'register' && (
+        <RegisterModal
+          onClose={() => setModalType(null)}
+          onSwitchToLogin={() => setModalType('login')}
+        />
+      )}
     </Box>
   );
 };

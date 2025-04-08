@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Typography, IconButton, Box, Divider } from '@mui/material';
+import {
+  Dialog, DialogTitle, DialogContent, DialogActions,
+  TextField, Button, Typography, IconButton, Box, Divider
+} from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
@@ -22,6 +25,7 @@ const LoginModal = ({ onClose, onSwitchToRegister }) => {
       toast.success('🎉 Successfully logged in!');
       onClose();
     } catch (err) {
+      console.error('[Login error]', err.response?.data || err.message);
       toast.error('❌ Login failed. Check credentials.');
     }
   };
@@ -34,8 +38,8 @@ const LoginModal = ({ onClose, onSwitchToRegister }) => {
           <CloseIcon />
         </IconButton>
       </DialogTitle>
-      <DialogContent sx={{ pt: 3 }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <DialogContent sx={{ paddingTop: '48px !important', paddingX: '32px !important' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px !important' }}>
           <TextField
             label="Email Address"
             type="email"

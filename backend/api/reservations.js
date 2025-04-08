@@ -12,6 +12,7 @@ const pool = mysql.createPool({
   queueLimit: 0,
 });
 
+// ✅ Create a new reservation
 exports.createReservation = async (req, res) => {
   const { user_id, resort_id, booking_date } = req.body;
 
@@ -25,12 +26,12 @@ exports.createReservation = async (req, res) => {
       [user_id, resort_id, booking_date, 'pending']
     );
 
-    res.json({ 
-      booking_id: result.insertId, 
-      user_id, 
-      resort_id, 
-      booking_date, 
-      status: 'pending' 
+    res.json({
+      booking_id: result.insertId,
+      user_id,
+      resort_id,
+      booking_date,
+      status: 'pending'
     });
   } catch (error) {
     console.error('Reservation creation error:', error.message);
@@ -38,15 +39,15 @@ exports.createReservation = async (req, res) => {
   }
 };
 
+// ✅ Fetch reservations (optionally filtered by date)
 exports.getReservations = async (req, res) => {
   const { date } = req.query;
 
   try {
     let query = `
-      SELECT b.*, u.username AS user_name, r.resort_name AS resort_name
+      SELECT b.*, u.username AS user_name
       FROM bookings b
       JOIN users u ON b.user_id = u.user_id
-      JOIN resorts r ON b.resort_id = r.resort_id
     `;
     const params = [];
 
