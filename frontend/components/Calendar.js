@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { LocalizationProvider, DateCalendar } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { Typography, Divider, Box, Link } from "@mui/material";
 import { useAuth } from "../context/AuthContext";
+import { useModalStore } from "../store/useModalStore";
 import dayjs from "dayjs";
 
 const Calendar = () => {
   const [selectedDate, setSelectedDate] = useState(dayjs());
   const { user } = useAuth();
+  const { openModal } = useModalStore();
 
   return (
     <Box sx={{ p: 2 }}>
@@ -22,8 +24,8 @@ const Calendar = () => {
           sx={{
             width: "100%",
             ".MuiDayCalendar-weekContainer": {
-              justifyContent: "space-between", // ✅ spreads the weekdays
-              gap: "8px", // optional spacing between days
+              justifyContent: "space-between",
+              gap: "8px",
             },
             ".MuiDayCalendar-header": {
               justifyContent: "space-between",
@@ -32,25 +34,16 @@ const Calendar = () => {
         />
       </LocalizationProvider>
 
-      <Divider sx={{ my: 3, borderColor: "rgba(0,0,0,0.1)" }} /> {/* ✅ Subtle divider */}
+      <Divider sx={{ my: 3, borderColor: "rgba(0,0,0,0.1)" }} />
 
       {user ? (
-        <Typography variant="h6">
-          Your upcoming bookings:
-        </Typography>
+        <Typography variant="h6">Your upcoming bookings:</Typography>
       ) : (
         <Typography variant="body1" align="center">
-          <Link
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              const event = new CustomEvent("open-login-modal");
-              window.dispatchEvent(event);
-            }}
-            sx={{ cursor: "pointer" }}
-          >
+          <Link onClick={() => openModal("login")} sx={{ cursor: "pointer" }}>
             Login
-          </Link> to view your upcoming bookings.
+          </Link>{" "}
+          to view your upcoming bookings
         </Typography>
       )}
     </Box>

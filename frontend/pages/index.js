@@ -15,45 +15,33 @@ import RegisterModal from "../components/Auth/RegisterModal";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "@mui/material/styles";
 import Snowfall from "../components/Snowfall";
-
+import { useModalStore } from "../store/useModalStore";
 
 const Home = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [mountains, setMountains] = useState([]);
   const [mapCenter, setMapCenter] = useState({ lon: -116.823348, lat: 37.621193 });
   const [mapKey, setMapKey] = useState(0);
-  const [modalType, setModalType] = useState(null);
-  const { user, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
+  const { user, logout } = useAuth();
+  const { modalType, openModal, closeModal } = useModalStore();
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
-  const fetchMountains = async (query = "Southern California") => {
-    try {
-      const response = await fetch(`http://localhost:5000/api/mountains?query=${encodeURIComponent(query)}`);
-      if (!response.ok) throw new Error("Mountains API not found");
-      const data = await response.json();
-      setMountains(data);
-    } catch (error) {
-      console.error("Error fetching mountain data:", error);
-    }
-  };
-
   useEffect(() => {
-    fetchMountains();
-  }, []);
-
-  // custom event listener for login modal
-  useEffect(() => {
-    const handleOpenLoginModal = () => {
-      console.log("open-login-modal triggered");
-      setModalType("login");
+    const fetchMountains = async (query = "Southern California") => {
+      try {
+        const response = await fetch(`http://localhost:5000/api/mountains?query=${encodeURIComponent(query)}`);
+        if (!response.ok) throw new Error("Mountains API not found");
+        const data = await response.json();
+        setMountains(data);
+      } catch (error) {
+        console.error("Error fetching mountain data:", error);
+      }
     };
-
-    window.addEventListener("open-login-modal", handleOpenLoginModal);
-    return () => window.removeEventListener("open-login-modal", handleOpenLoginModal);
+    fetchMountains();
   }, []);
 
   const handleSearch = async () => {
@@ -101,7 +89,7 @@ const Home = () => {
         backgroundColor: "transparent"
       }}
     >
-      <Snowfall /> {/* ✅ This goes right here */}
+      <Snowfall />
       <Head>
         <title>Snow Mountain Tracker</title>
         <link rel="icon" href="/logo/smt-logo.png" type="image/png" />
@@ -144,7 +132,6 @@ const Home = () => {
                 height: "63vh",
                 overflow: "hidden",
                 position: "relative",
-                // backgroundColor: "rgba(255, 255, 255, 0.05)",
                 "&::before": {
                   content: '""',
                   position: "absolute",
@@ -188,10 +175,10 @@ const Home = () => {
               <Box sx={{ display: 'flex', gap: 1, ml: 'auto' }}>
                 {!user ? (
                   <>
-                    <Button variant="outlined" color="primary" onClick={() => setModalType('login')} sx={{ height: "56px" }}>
+                    <Button variant="outlined" color="primary" onClick={() => openModal('login')} sx={{ height: "56px" }}>
                       Login
                     </Button>
-                    <Button variant="contained" color="secondary" onClick={() => setModalType('register')} sx={{ height: "56px" }}>
+                    <Button variant="contained" color="secondary" onClick={() => openModal('register')} sx={{ height: "56px" }}>
                       Register
                     </Button>
                   </>
@@ -210,7 +197,6 @@ const Home = () => {
                 borderRadius: "12px",
                 overflow: "hidden",
                 boxShadow: 4,
-                // backgroundColor: "#e0e0e0",
                 position: "relative",
               }}
             >
@@ -254,16 +240,17 @@ const Home = () => {
         }}
       />
 
+      {/* Zustand-based modals */}
       {modalType === 'login' && (
         <LoginModal
-          onClose={() => setModalType(null)}
-          onSwitchToRegister={() => setModalType('register')}
+          onClose={closeModal}
+          onSwitchToRegister={() => openModal('register')}
         />
       )}
       {modalType === 'register' && (
         <RegisterModal
-          onClose={() => setModalType(null)}
-          onSwitchToLogin={() => setModalType('login')}
+          onClose={closeModal}
+          onSwitchToLogin={() => openModal('login')}
         />
       )}
     </Box>
