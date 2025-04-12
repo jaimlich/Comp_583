@@ -17,6 +17,7 @@
         "mysql2": "^3.12.0",
         "node-cache": "^5.1.2",
         "pg": "^8.7.3",
+        "qrcode": "^1.5.4",
         "semver": "^7.7.1",
         "smt-backend": "file:"
     },

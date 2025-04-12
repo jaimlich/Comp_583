@@ -4,7 +4,7 @@
 Snow Mountain Tracker is a free-to-use application that provides real-time snowfall updates, secure ski lift booking, and trip coordination tools for skiing enthusiasts, resort managers, and casual tourists.
 
 ## Project Structure
-- **backend/**: Node.js/Express server for API endpoints, database integration (PostgreSQL), caching, and third-party services.
+- **backend/**: Node.js/Express server for API endpoints, database integration (MySQL), caching, and third-party services.
 - **frontend/**: Next.js (React) application using Mapbox GL JS and Chakra UI for an interactive map-based UI.
 
 ## Setup Instructions
@@ -16,10 +16,10 @@ Follow the steps below to recreate the ".env" files
 *Everywhere you see a ".env.example" or anything similar, you will remove the ".example" part of the file and input your own secret/personal API keys in there.*
 Listed below are all the locations of the .env files that you must edit/fill in with your API keys and other information.
 
-Mapbox API (Map): https://www.mapbox.com/
-IP Info (Gelocation): https://ipinfo.io/
-Visual Crossing API (Weather): https://www.visualcrossing.com/weather-api/
-MySQL (Database): https://www.mysql.com/
+Mapbox API (Map): https://www.mapbox.com/<br />
+IP Info (Gelocation): https://ipinfo.io/<br />
+Visual Crossing API (Weather): https://www.visualcrossing.com/weather-api/<br />
+MySQL (Database): https://www.mysql.com/<br />
 
 1. Root Directory<br />
 /.env.example -> /.env
