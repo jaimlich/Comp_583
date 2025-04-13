@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box, TextField, Button, MenuItem, Typography, Paper, Divider, ToggleButton, ToggleButtonGroup
 } from "@mui/material";
@@ -9,12 +9,22 @@ import BookingConfirmation from "./BookingConfirmation";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
 
-const BookingSystem = ({ mountains = [] }) => {
+const BookingSystem = ({ mountains = [], selectedMountain }) => {
   const { user } = useAuth();
   const [selectedDate, setSelectedDate] = useState(dayjs());
   const [slot, setSlot] = useState("AM");
   const [formData, setFormData] = useState({ mountain: "" });
   const [confirmation, setConfirmation] = useState(null);
+  const [highlightDropdown, setHighlightDropdown] = useState(false);
+
+  useEffect(() => {
+    if (selectedMountain?.name) {
+      setFormData(prev => ({ ...prev, mountain: selectedMountain.name }));
+      setHighlightDropdown(true);
+      const timer = setTimeout(() => setHighlightDropdown(false), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [selectedMountain]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -57,7 +67,7 @@ const BookingSystem = ({ mountains = [] }) => {
   }
 
   return (
-    <Paper sx={{ p: 3, borderRadius: "12px", boxShadow: 3, height: "100%"}}>
+    <Paper elevation={3} sx={{ p: 3, borderRadius: "12px", boxShadow: 3, height: "100%" }}>
       <Typography variant="h6" gutterBottom>
         🎟️ Book Your Spot
       </Typography>
@@ -69,7 +79,15 @@ const BookingSystem = ({ mountains = [] }) => {
         value={formData.mountain}
         onChange={handleChange}
         fullWidth
-        sx={{ mb: 2 }}
+        sx={{
+          mb: 2,
+          animation: highlightDropdown ? "flash 0.8s ease-in-out" : "none",
+          "@keyframes flash": {
+            "0%": { backgroundColor: "#fff" },
+            "50%": { backgroundColor: "#fff8c4" },
+            "100%": { backgroundColor: "#fff" },
+          }
+        }}
       >
         {mountains.map((mtn, index) => (
           <MenuItem key={index} value={mtn.id || mtn.name}>
@@ -102,7 +120,6 @@ const BookingSystem = ({ mountains = [] }) => {
       </ToggleButtonGroup>
 
       <Divider sx={{ my: 2 }} />
-
       <Button variant="contained" fullWidth color="primary" onClick={handleBooking}>
         Confirm Booking
       </Button>
