@@ -25,9 +25,24 @@ const LoginModal = ({ onClose, onSwitchToRegister }) => {
       toast.success('🎉 Successfully logged in!');
       onClose();
     } catch (err) {
-      console.error('[Login error]', err.response?.data || err.message);
-      toast.error('❌ Login failed. Check credentials.');
+      const msg = err?.response?.data?.message;
+      if (msg?.includes("verify")) {
+        toast.warning("⚠️ Please verify your email.");
+      } else {
+        toast.error('❌ Login failed. Check credentials.');
+      }
     }
+  };
+
+  const handleResend = async () => {
+    if (!email) return toast.info("Enter your email first.");
+    const res = await fetch("/api/auth/resend-verification", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    toast.info(data.message || "Verification email resent.");
   };
 
   return (
@@ -64,6 +79,9 @@ const LoginModal = ({ onClose, onSwitchToRegister }) => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
+          <Button variant="text" size="small" onClick={handleResend}>
+            🔁 Resend verification email
+          </Button>
         </Box>
         <Divider sx={{ my: 3 }} />
         <Typography variant="body1" align="center">
