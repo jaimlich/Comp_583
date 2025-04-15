@@ -23,11 +23,11 @@ const UpcomingBookings = () => {
 
   return (
     <Box sx={{ mt: 2 }}>
-      <Typography variant="h6" gutterBottom>
+      <Box variant="h6" gutterBottom>
         📅 Your Upcoming Bookings
-      </Typography>
+      </Box>
       {bookings.length === 0 ? (
-        <Typography variant="body2">No upcoming bookings.</Typography>
+        <Box variant="body2">No upcoming bookings.</Box>
       ) : (
         <List dense>
           {bookings.map((b, i) => (

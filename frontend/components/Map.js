@@ -84,7 +84,7 @@ const Map = ({ center, filters, onMountainHover, onMountainSelect, lockedMountai
       if (!show) return;
 
       const iconPath = mountain.hasSnow
-        ? "/icons/SVG/mountain_has_snow.svg"
+        ? "/icons/SVG/mountain_snow.svg"
         : mountain.forecastSnow && mountain.forecastDays <= filters.forecastDays
           ? "/icons/SVG/mountain_snow_forecast.svg"
           : "/icons/SVG/mountain_no_snow.svg";

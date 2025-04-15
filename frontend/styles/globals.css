@@ -10,7 +10,7 @@ html, body, #__next {
   position: relative;
 }
 
-body::before {
+/* body::before {
   content: "";
   position: fixed;
   top: 0;
@@ -25,7 +25,7 @@ body::before {
   animation: scrollSnowflakes 60s linear infinite;
   background-attachment: fixed;
   pointer-events: none;
-}
+} */
 
 @keyframes scrollSnowflakes {
   0% { background-position-y: 0; }

@@ -36,9 +36,10 @@ const Home = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const { user, logout } = useAuth();
   const { modalType, openModal, closeModal } = useModalStore();
-
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     const fetchMountains = async () => {
@@ -52,6 +53,14 @@ const Home = () => {
       }
     };
     fetchMountains();
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const handleSearch = async () => {
@@ -100,19 +109,42 @@ const Home = () => {
   };
 
   return (
-    <Box sx={{ minHeight: "100vh", display: "flex", flexDirection: "column", position: "relative", zIndex: 1, overflowX: "hidden", backgroundColor: "transparent" }}>
+    <Box sx={{ minHeight: "100vh", display: "flex", flexDirection: "column", position: "relative", zIndex: 1, overflowX: "hidden", backgroundColor: "transparent", pb: "80px" }}>
       <Snowfall />
       <Head>
         <title>Snow Mountain Tracker</title>
         <link rel="icon" href="/logo/smt-logo.png" type="image/png" />
       </Head>
 
-      <Box sx={{ position: "sticky", top: 0, zIndex: 1000, py: 2, background: "#1565c0", color: "white", textAlign: "center" }}>
+      {/* Sticky + Animated Header */}
+      <Box
+        component="header"
+        sx={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          py: 2,
+          zIndex: 1200,
+          backgroundColor: scrolled ? "#104ca1" : "#1565c0",
+          color: "white",
+          textAlign: "center",
+          transition: "background-color 0.3s ease-in-out",
+          boxShadow: "0px 2px 8px rgba(0,0,0,0.2)"
+        }}
+      >
         <Typography variant="h4">🏔️ Snow Mountain Tracker 🏔️</Typography>
       </Box>
 
-      <Container maxWidth="xl" sx={{ flex: 1 }}>
-        <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
+      <Container
+          maxWidth="xl"
+          sx={{
+            flex: 1,
+            pt: "85px",   // compensate for fixed header
+            pb: "1px"     // compensate for sticky footer
+          }}
+        >
+        <Box sx={{ display: "flex", gap: 2 }}>
           {/* Sidebar */}
           {isMobile ? (
             <>
@@ -128,22 +160,24 @@ const Home = () => {
               </Drawer>
             </>
           ) : (
-            <Box sx={{ width: "23%", height: "73vh", p: 2, borderRadius: 2, boxShadow: 3, overflow: "hidden", position: "relative", display: "flex", justifyContent: "center", alignItems: "center", "&::before": {
-              content: '""',
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              width: "120%",
-              height: "120%",
-              transform: "translate(-50%, -50%)",
-              backgroundImage: "url('/logo/smt-logo.png')",
-              backgroundSize: "contain",
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "center",
-              opacity: 0.3,
-              zIndex: 0,
-              pointerEvents: "none"
-            } }}>
+            <Box sx={{
+              width: "23%", height: "73vh", p: 2, borderRadius: 2, boxShadow: 3, overflow: "hidden", position: "relative",
+              display: "flex", justifyContent: "center", alignItems: "center",
+              "&::before": {
+                content: '""',
+                position: "absolute",
+                top: "50%", left: "50%",
+                width: "120%", height: "120%",
+                transform: "translate(-50%, -50%)",
+                backgroundImage: "url('/logo/smt-logo.png')",
+                backgroundSize: "contain",
+                backgroundRepeat: "no-repeat",
+                backgroundPosition: "center",
+                opacity: 0.3,
+                zIndex: 0,
+                pointerEvents: "none"
+              }
+            }}>
               <Box sx={{ zIndex: 1, width: "100%" }}>
                 <Sidebar
                   mountains={mountains}
@@ -156,7 +190,7 @@ const Home = () => {
             </Box>
           )}
 
-          {/* Map + Filters */}
+          {/* Map + Filter */}
           <Box sx={{ flex: 1 }}>
             <Paper elevation={3} sx={{ backgroundColor: "rgba(255, 255, 255, 0.8)", p: 2, mb: 2, display: "flex", alignItems: "center", gap: 1, borderRadius: "10px" }}>
               <TextField
@@ -164,9 +198,7 @@ const Home = () => {
                 variant="outlined"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleSearch();
-                }}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                 fullWidth
               />
               <Button variant="contained" color="primary" onClick={handleSearch} sx={{ height: "56px" }}>
@@ -175,21 +207,14 @@ const Home = () => {
               <IconButton color="secondary" onClick={handleLocateMe} sx={{ height: "56px" }}>
                 <MyLocationIcon fontSize="large" />
               </IconButton>
-
-              <Box sx={{ display: 'flex', gap: 1, ml: 'auto' }}>
+              <Box sx={{ display: "flex", gap: 1, ml: "auto" }}>
                 {!user ? (
                   <>
-                    <Button variant="outlined" color="primary" onClick={() => openModal('login')} sx={{ height: "56px" }}>
-                      Login
-                    </Button>
-                    <Button variant="contained" color="secondary" onClick={() => openModal('register')} sx={{ height: "56px" }}>
-                      Register
-                    </Button>
+                    <Button variant="outlined" onClick={() => openModal("login")} sx={{ height: 56 }}>Login</Button>
+                    <Button variant="contained" onClick={() => openModal("register")} sx={{ height: 56 }}>Register</Button>
                   </>
                 ) : (
-                  <Button variant="outlined" color="primary" onClick={logout} sx={{ height: "56px" }}>
-                    Logout ({user.email})
-                  </Button>
+                  <Button variant="outlined" onClick={logout} sx={{ height: 56 }}>Logout ({user.email})</Button>
                 )}
               </Box>
             </Paper>
@@ -207,7 +232,6 @@ const Home = () => {
           </Box>
         </Box>
 
-        {/* Booking and Calendar */}
         <Box sx={{ display: "flex", gap: 2, mt: 4 }}>
           <Box sx={{ flex: 1 }}>
             <BookingSystem mountains={mountains} selectedMountain={selectedMountain} />
@@ -220,8 +244,19 @@ const Home = () => {
         </Box>
       </Container>
 
-      {/* Footer */}
-      <Box sx={{ mt: 6, py: 2, backgroundColor: "#1565c0", color: "white", textAlign: "center" }}>
+      {/* Fixed Footer */}
+      <Box component="footer" sx={{
+        position: "fixed",
+        bottom: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1000,
+        py: 2,
+        backgroundColor: "#1565c0",
+        color: "white",
+        textAlign: "center",
+        boxShadow: "0px -2px 8px rgba(0,0,0,0.2)"
+      }}>
         <Typography variant="body2">© {new Date().getFullYear()} Snow Mountain Tracker</Typography>
       </Box>
 
@@ -232,27 +267,21 @@ const Home = () => {
         alt="SMT Watermark"
         sx={{
           position: "fixed",
-          bottom: 10,
+          bottom: 53,
           right: 10,
           width: 140,
-          opacity: 0.87,
+          opacity: 0.89,
           zIndex: 0,
           pointerEvents: "none",
           animation: "floatLogo 6s ease-in-out infinite"
         }}
       />
 
-      {modalType === 'login' && (
-        <LoginModal
-          onClose={closeModal}
-          onSwitchToRegister={() => openModal('register')}
-        />
+      {modalType === "login" && (
+        <LoginModal onClose={closeModal} onSwitchToRegister={() => openModal("register")} />
       )}
-      {modalType === 'register' && (
-        <RegisterModal
-          onClose={closeModal}
-          onSwitchToLogin={() => openModal('login')}
-        />
+      {modalType === "register" && (
+        <RegisterModal onClose={closeModal} onSwitchToLogin={() => openModal("login")} />
       )}
     </Box>
   );
