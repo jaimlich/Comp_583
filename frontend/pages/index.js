@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Head from "next/head";
 import {
   Box, TextField, Button, Typography, Container, Paper,
-  IconButton, Drawer, useMediaQuery, Link
+  IconButton, Drawer, useMediaQuery, Menu, MenuItem, Avatar
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import MyLocationIcon from "@mui/icons-material/MyLocation";
@@ -17,6 +17,7 @@ import { useAuth } from "../context/AuthContext";
 import { useTheme } from "@mui/material/styles";
 import Snowfall from "../components/Snowfall";
 import { useModalStore } from "../store/useModalStore";
+import { useRouter } from "next/router";
 
 const Home = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -38,8 +39,10 @@ const Home = () => {
   const { modalType, openModal, closeModal } = useModalStore();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const router = useRouter();
 
   const [scrolled, setScrolled] = useState(false);
+  const [menuAnchor, setMenuAnchor] = useState(null);
 
   useEffect(() => {
     const fetchMountains = async () => {
@@ -56,9 +59,7 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-    };
+    const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -70,30 +71,30 @@ const Home = () => {
       if (data.length > 0) {
         const { lat, lon } = data[0];
         setMapCenter({ lat: parseFloat(lat), lon: parseFloat(lon) });
-        setMapKey(prev => prev + 1);
+        setMapKey((prev) => prev + 1);
       } else {
-        alert("Location not found. Try another city or zip code.");
+        alert("Location not found.");
       }
     } catch (error) {
-      console.error("Error fetching location:", error);
+      console.error("Search error:", error);
     }
   };
 
   const handleLocateMe = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setMapCenter({
-            lat: position.coords.latitude,
-            lon: position.coords.longitude,
-          });
-          setMapKey(prev => prev + 1);
-        },
-        () => alert("Geolocation permission denied or not supported.")
-      );
-    } else {
-      alert("Geolocation is not supported by this browser.");
+    if (!navigator.geolocation) {
+      alert("Geolocation not supported.");
+      return;
     }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setMapCenter({
+          lat: pos.coords.latitude,
+          lon: pos.coords.longitude
+        });
+        setMapKey((prev) => prev + 1);
+      },
+      () => alert("Permission denied.")
+    );
   };
 
   const handleMountainHover = (mtn) => {
@@ -108,15 +109,38 @@ const Home = () => {
     setHoveredMountain(mtn);
   };
 
+  const handleMenuOpen = (e) => setMenuAnchor(e.currentTarget);
+  const handleMenuClose = () => setMenuAnchor(null);
+
+  const handleViewProfile = () => {
+    router.push("/profile");
+    handleMenuClose();
+  };
+
+  const handleMyBookings = () => {
+    router.push("/my-bookings");
+    handleMenuClose();
+  };
+
+  const handleLogout = () => {
+    logout();
+    handleMenuClose();
+  };
+
+  const getInitials = () => {
+    if (user?.name) return user.name[0].toUpperCase();
+    return user?.email?.[0].toUpperCase() || "U";
+  };
+
   return (
     <Box sx={{ minHeight: "100vh", display: "flex", flexDirection: "column", position: "relative", zIndex: 1, overflowX: "hidden", backgroundColor: "transparent", pb: "80px" }}>
       <Snowfall />
       <Head>
         <title>Snow Mountain Tracker</title>
-        <link rel="icon" href="/logo/smt-logo.png" type="image/png" />
+        <link rel="icon" href="/logo/smt-logo.png" />
       </Head>
 
-      {/* Sticky + Animated Header */}
+      {/* Sticky Header */}
       <Box
         component="header"
         sx={{
@@ -124,58 +148,71 @@ const Home = () => {
           top: 0,
           left: 0,
           right: 0,
-          py: 2,
-          zIndex: 1200,
+          py: 1.6,
+          px: 4,
           backgroundColor: scrolled ? "#104ca1" : "#1565c0",
           color: "white",
+          zIndex: 1200,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
           textAlign: "center",
-          transition: "background-color 0.3s ease-in-out",
-          boxShadow: "0px 2px 8px rgba(0,0,0,0.2)"
+          boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+          transition: "background-color 0.3s"
         }}
       >
-        <Typography variant="h4">🏔️ Snow Mountain Tracker 🏔️</Typography>
-      </Box>
-
-      <Container
-          maxWidth="xl"
+        <Typography
+          variant="h4"
           sx={{
-            flex: 1,
-            pt: "85px",   // compensate for fixed header
-            pb: "1px"     // compensate for sticky footer
+            animation: "fadeInDown 0.5s ease-in-out"
           }}
         >
-        <Box sx={{ display: "flex", gap: 2 }}>
-          {/* Sidebar */}
-          {isMobile ? (
+          🏔️ Snow Mountain Tracker 🏔️
+        </Typography>
+
+        {/* Auth controls fixed to the right */}
+        <Box sx={{ position: "absolute", right: 24, display: "flex", gap: 1 }}>
+          {user ? (
             <>
-              <Button variant="outlined" onClick={() => setSidebarOpen(true)}>☰ Mountains</Button>
-              <Drawer anchor="left" open={sidebarOpen} onClose={() => setSidebarOpen(false)}>
-                <Sidebar
-                  mountains={mountains}
-                  setMapCenter={setMapCenter}
-                  hoveredMountain={hoveredMountain}
-                  onMountainHover={handleMountainHover}
-                  onMountainSelect={handleMountainSelect}
-                />
-              </Drawer>
+              <IconButton onClick={handleMenuOpen}>
+                <Avatar>{getInitials()}</Avatar>
+              </IconButton>
+              <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={handleMenuClose}>
+                <MenuItem onClick={handleViewProfile}>👤 View Profile</MenuItem>
+                <MenuItem onClick={handleMyBookings}>📅 My Bookings</MenuItem>
+                <MenuItem onClick={handleLogout}>🚪 Logout</MenuItem>
+              </Menu>
             </>
+          ) : (
+            <>
+              <Button variant="contained" onClick={() => openModal("login")}>Login</Button>
+              <Button variant="contained" onClick={() => openModal("register")}>Register</Button>
+            </>
+          )}
+        </Box>
+      </Box>
+
+      <Container maxWidth="xl" sx={{ flex: 1, pt: "85px", pb: "1px"}} >
+        {/* Sidebar + Map */}
+        <Box sx={{ display: "flex", gap: 2 }}>
+          {isMobile ? (
+            <Drawer anchor="left" open={sidebarOpen} onClose={() => setSidebarOpen(false)}>
+              <Sidebar
+                mountains={mountains}
+                setMapCenter={setMapCenter}
+                hoveredMountain={hoveredMountain}
+                onMountainHover={handleMountainHover}
+                onMountainSelect={handleMountainSelect}
+              />
+            </Drawer>
           ) : (
             <Box sx={{
               width: "23%", height: "73vh", p: 2, borderRadius: 2, boxShadow: 3, overflow: "hidden", position: "relative",
               display: "flex", justifyContent: "center", alignItems: "center",
               "&::before": {
-                content: '""',
-                position: "absolute",
-                top: "50%", left: "50%",
-                width: "120%", height: "120%",
-                transform: "translate(-50%, -50%)",
-                backgroundImage: "url('/logo/smt-logo.png')",
-                backgroundSize: "contain",
-                backgroundRepeat: "no-repeat",
-                backgroundPosition: "center",
-                opacity: 0.3,
-                zIndex: 0,
-                pointerEvents: "none"
+                content: '""', position: "absolute", top: "50%", left: "50%", width: "120%", height: "120%",
+                transform: "translate(-50%, -50%)", backgroundImage: "url('/logo/smt-logo.png')",
+                backgroundSize: "contain", backgroundRepeat: "no-repeat", backgroundPosition: "center", opacity: 0.3, zIndex: 0
               }
             }}>
               <Box sx={{ zIndex: 1, width: "100%" }}>
@@ -190,36 +227,24 @@ const Home = () => {
             </Box>
           )}
 
-          {/* Map + Filter */}
           <Box sx={{ flex: 1 }}>
-            <Paper elevation={3} sx={{ backgroundColor: "rgba(255, 255, 255, 0.8)", p: 2, mb: 2, display: "flex", alignItems: "center", gap: 1, borderRadius: "10px" }}>
+            <Paper elevation={3} sx={{ backgroundColor: "rgba(255,255,255,0.8)", p: 2, mb: 2, borderRadius: 2, display: "flex", alignItems: "center", gap: 1 }}>
               <TextField
                 label="🔍 Search by city or zip code"
-                variant="outlined"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                 fullWidth
               />
-              <Button variant="contained" color="primary" onClick={handleSearch} sx={{ height: "56px" }}>
+              <Button onClick={handleSearch} variant="contained" sx={{ height: 56 }}>
                 <SearchIcon /> Search
               </Button>
-              <IconButton color="secondary" onClick={handleLocateMe} sx={{ height: "56px" }}>
+              <IconButton onClick={handleLocateMe} color="primary" sx={{ height: 56 }}>
                 <MyLocationIcon fontSize="large" />
               </IconButton>
-              <Box sx={{ display: "flex", gap: 1, ml: "auto" }}>
-                {!user ? (
-                  <>
-                    <Button variant="outlined" onClick={() => openModal("login")} sx={{ height: 56 }}>Login</Button>
-                    <Button variant="contained" onClick={() => openModal("register")} sx={{ height: 56 }}>Register</Button>
-                  </>
-                ) : (
-                  <Button variant="outlined" onClick={logout} sx={{ height: 56 }}>Logout ({user.email})</Button>
-                )}
-              </Box>
             </Paper>
 
-            <Box key={mapKey} sx={{ height: "64.8vh", borderRadius: "12px", overflow: "hidden", boxShadow: 4, position: "relative" }}>
+            <Box key={mapKey} sx={{ height: "48.3vh", borderRadius: 12, boxShadow: 4, position: "relative" }}>
               <MountainFilter filters={filters} setFilters={setFilters} />
               <Map
                 center={mapCenter}
@@ -237,30 +262,29 @@ const Home = () => {
             <BookingSystem mountains={mountains} selectedMountain={selectedMountain} />
           </Box>
           <Box sx={{ flex: 1.5 }}>
-            <Paper elevation={3} sx={{ backgroundColor: "rgba(255, 255, 255, 0.8)", p: 3, borderRadius: "12px", height: "100%" }}>
+            <Paper elevation={3} sx={{ p: 3, borderRadius: 2, backgroundColor: "rgba(255,255,255,0.8)" }}>
               <Calendar selectedDate={selectedDate} onDateChange={setSelectedDate} />
             </Paper>
           </Box>
         </Box>
       </Container>
 
-      {/* Fixed Footer */}
+      {/* Sticky Footer */}
       <Box component="footer" sx={{
         position: "fixed",
         bottom: 0,
         left: 0,
         right: 0,
-        zIndex: 1000,
-        py: 2,
+        py: 1.6,
+        textAlign: "center",
         backgroundColor: "#1565c0",
         color: "white",
-        textAlign: "center",
-        boxShadow: "0px -2px 8px rgba(0,0,0,0.2)"
+        zIndex: 1100
       }}>
         <Typography variant="body2">© {new Date().getFullYear()} Snow Mountain Tracker</Typography>
       </Box>
 
-      {/* Floating Watermark */}
+      {/* Floating Logo */}
       <Box
         component="img"
         src="/logo/smt-logo.png"
@@ -270,19 +294,16 @@ const Home = () => {
           bottom: 53,
           right: 10,
           width: 140,
-          opacity: 0.89,
-          zIndex: 0,
+          opacity: 0.87,
           pointerEvents: "none",
+          zIndex: 0,
           animation: "floatLogo 6s ease-in-out infinite"
         }}
       />
 
-      {modalType === "login" && (
-        <LoginModal onClose={closeModal} onSwitchToRegister={() => openModal("register")} />
-      )}
-      {modalType === "register" && (
-        <RegisterModal onClose={closeModal} onSwitchToLogin={() => openModal("login")} />
-      )}
+      {/* Modals */}
+      {modalType === "login" && <LoginModal onClose={closeModal} onSwitchToRegister={() => openModal("register")} />}
+      {modalType === "register" && <RegisterModal onClose={closeModal} onSwitchToLogin={() => openModal("login")} />}
     </Box>
   );
 };

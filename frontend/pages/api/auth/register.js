@@ -1,19 +1,15 @@
 import axios from 'axios';
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).end(); // Method Not Allowed
-  }
+  if (req.method !== 'POST') return res.status(405).end();
 
   try {
-    const response = await axios.post(
-      'http://smt_backend:5000/api/register',
-      req.body
-    );
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    const response = await axios.post(`${backendUrl}/api/auth/register`, req.body);
     res.status(response.status).json(response.data);
-  } catch (error) {
-    const status = error.response?.status || 500;
-    const message = error.response?.data?.message || 'Internal Server Error';
+  } catch (err) {
+    const status = err.response?.status || 500;
+    const message = err.response?.data?.message || "Register error";
     res.status(status).json({ message });
   }
 }

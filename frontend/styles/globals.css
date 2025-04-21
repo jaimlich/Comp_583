@@ -55,6 +55,17 @@ body::after {
   }
 }
 
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-75px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Background scroll logos */
 @keyframes scrollLogos {
   0% {

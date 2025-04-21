@@ -1,4 +1,4 @@
-
+// frontend/components/Map.js
 import React, { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -10,12 +10,9 @@ const Map = ({ center, filters, onMountainHover, onMountainSelect, lockedMountai
   const mapInstance = useRef(null);
   const popupRef = useRef(null);
   const [mountains, setMountains] = useState([]);
-  const [mapReady, setMapReady] = useState(false); // prevent initial flyTo
+  const [mapReady, setMapReady] = useState(false);
 
-  const US_BOUNDS = [
-    [-140, 10],
-    [-50, 72]
-  ];
+  const US_BOUNDS = [[-140, 10], [-50, 72]];
 
   useEffect(() => {
     if (!process.env.NEXT_PUBLIC_MAPBOX_API_KEY || mapInstance.current) return;
@@ -25,7 +22,7 @@ const Map = ({ center, filters, onMountainHover, onMountainSelect, lockedMountai
     mapInstance.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: "mapbox://styles/mapbox/outdoors-v12",
-      center: [-97, 33], // Initial US view
+      center: [-97, 33],
       zoom: 3.7,
       maxBounds: US_BOUNDS,
       maxZoom: 10,
@@ -60,8 +57,8 @@ const Map = ({ center, filters, onMountainHover, onMountainSelect, lockedMountai
   useEffect(() => {
     fetch(`${baseUrl}/api/mountains`)
       .then((res) => res.ok ? res.json() : Promise.reject(res.statusText))
-      .then((data) => setMountains(data))
-      .catch((err) => console.error("Error fetching mountains:", err));
+      .then(setMountains)
+      .catch((err) => console.error("❌ Error fetching mountains:", err));
   }, []);
 
   useEffect(() => {

@@ -1,6 +1,5 @@
-import { createContext, useContext, useEffect, useState } from 'react';
-import axios from 'axios';
-import Cookies from 'js-cookie';
+import { createContext, useContext, useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
 const AuthContext = createContext();
 
@@ -9,31 +8,26 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUser = async () => {
     try {
-      const res = await axios.get('/api/auth/me');
-      setUser(res.data.user);
-    } catch (err) {
+      const res = await fetch("/api/auth/me");
+      const data = await res.json();
+      if (res.ok) {
+        setUser(data.user);
+        return true;
+      }
       setUser(null);
+      return false;
+    } catch {
+      setUser(null);
+      return false;
     }
   };
 
-  const login = async (email, password) => {
-    const res = await axios.post('/api/auth/login', { email, password });
-    Cookies.set('token', res.data.token, { expires: 1 }); // Store token for session
-    setUser(res.data.user);
-  };
-
-  const logout = async () => {
-    Cookies.remove('token');
-    setUser(null);
-  };
-
   useEffect(() => {
-    const token = Cookies.get('token');
-    if (token) fetchUser();
+    fetchUser(); // loads user on startup
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, setUser, fetchUser }}>
       {children}
     </AuthContext.Provider>
   );

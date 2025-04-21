@@ -3,11 +3,11 @@ import { useRouter } from "next/router";
 import { toast } from "react-toastify";
 import { CircularProgress, Typography, Box } from "@mui/material";
 import { useAuth } from "../context/AuthContext";
-import Cookies from "js-cookie";
+import confetti from "canvas-confetti";
 
 export default function VerifyPage() {
   const router = useRouter();
-  const { setUser } = useAuth(); // ✅ assuming this exists
+  const { setUser } = useAuth();
 
   useEffect(() => {
     const runVerification = async () => {
@@ -26,24 +26,20 @@ export default function VerifyPage() {
         if (res.ok) {
           toast.success("✅ Email verified successfully!");
 
-          // ✅ Auto-login attempt (token stored on backend or via cookie)
-          const cookieToken = Cookies.get("token");
-          if (cookieToken) {
-            const userRes = await fetch("/api/auth/me", {
-              headers: {
-                Authorization: `Bearer ${cookieToken}`,
-              },
-            });
+          // 🎉 Fire confetti!
+          confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 }
+          });
 
-            if (userRes.ok) {
-              const userData = await userRes.json();
-              setUser(userData.user);
-              toast.success("🎉 You are now logged in.");
-            } else {
-              console.warn("User fetch failed after verification.");
-            }
+          // Try auto-login if token is cookie-based
+          const userRes = await fetch("/api/auth/me");
+          if (userRes.ok) {
+            const userData = await userRes.json();
+            setUser(userData.user);
+            toast.success("🎉 You are now logged in.");
           }
-
         } else {
           toast.error(resultText || "❌ Invalid or expired token.");
         }

@@ -1,8 +1,7 @@
 const axios = require("axios");
 const NodeCache = require("node-cache");
-const cache = new NodeCache({ stdTTL: 300 }); // Cache weather data for 5 minutes
+const cache = new NodeCache({ stdTTL: 900 }); // cache weather for 15 min
 
-// List of popular mountains
 const popularMountains = [
   { name: "Mammoth Mountain", latitude: 37.6304, longitude: -118.8753, distance: 112 },     // CA
   { name: "Big Bear Mountain", latitude: 34.2364, longitude: -116.8893, distance: 99 },     // CA
@@ -21,74 +20,52 @@ const popularMountains = [
   { name: "Heavenly Mountain", latitude: 38.9351, longitude: -119.9398, distance: 190 },    // CA/NV
 ];
 
-
 exports.getMountains = async (req, res) => {
   try {
     const apiKey = process.env.VISUAL_CROSSING_WEATHER_API_KEY;
 
-    // Fetch weather data for each mountain
     const mountainWeatherPromises = popularMountains.map(async (mountain) => {
       const cacheKey = `weather_${mountain.latitude}_${mountain.longitude}`;
-      const cachedWeather = cache.get(cacheKey);
-
-      if (cachedWeather) {
-        return { ...mountain, ...cachedWeather };
-      }
+      const cached = cache.get(cacheKey);
+      if (cached) return { ...mountain, ...cached };
 
       const url = `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${mountain.latitude},${mountain.longitude}?unitGroup=us&include=days&key=${apiKey}&contentType=json`;
 
       try {
-        const response = await axios.get(url);
-        const days = response.data.days;
-        const currentWeather = days[0]; // Today's weather
-        const upcomingSnowDayIndex = days.findIndex((day, index) => index > 0 && day.snow > 0); // Future snow days
+        const { data } = await axios.get(url);
+        const today = data.days[0];
+        const upcomingSnowDayIndex = data.days.findIndex((d, i) => i > 0 && d.snow > 0);
         const forecastDays = upcomingSnowDayIndex !== -1 ? upcomingSnowDayIndex : null;
 
-        // Get snowfall & rainfall depths
-        const snowfallLast24h = days[0].snow || 0;
-        const snowfallCurrent = days[0].snowdepth || 0;
-        const rainLast24h = days[0].precip || 0;
-
-        // Extract wind speed & road impact factors
-        const windSpeed = currentWeather.windspeed || "N/A";
-        const visibility = currentWeather.visibility || "N/A";
-        const temperature = currentWeather.temp || "N/A";
-        const feelsLike = currentWeather.feelslike || "N/A";
-
-        // Determine if chains might be required based on weather conditions
-        const chainsRequired = snowfallCurrent > 2 || visibility < 2 || windSpeed > 25;
-
         const weatherData = {
-          weather: currentWeather.conditions || "Unknown",
-          temperature,
-          feelsLike,
-          hasSnow: snowfallCurrent > 0,
+          weather: today.conditions || "Unknown",
+          temperature: today.temp,
+          feelsLike: today.feelslike,
+          snowfallCurrent: today.snowdepth || 0,
+          snowfallLast24h: today.snow || 0,
+          rainLast24h: today.precip || 0,
+          visibility: today.visibility || "N/A",
+          windSpeed: today.windspeed || "N/A",
+          chainsRequired: today.snowdepth > 2 || today.visibility < 2 || today.windspeed > 25,
+          hasSnow: today.snowdepth > 0,
           forecastSnow: forecastDays !== null,
           forecastDays,
-          snowfallCurrent, // Snow currently on the ground (in inches)
-          snowfallLast24h, // Snowfall in the last 24 hours (in inches)
-          rainLast24h, // Rainfall in the last 24 hours (in inches)
-          windSpeed, // Wind speed in mph
-          visibility, // Visibility in miles
-          chainsRequired, // Boolean: Are chains likely needed?
         };
 
-        // Cache the response for performance
-        cache.set(cacheKey, weatherData);
+        cache.set(cacheKey, weatherData); // store in cache
         return { ...mountain, ...weatherData };
 
-      } catch (error) {
-        console.error(`Error fetching weather for ${mountain.name}:`, error.message);
-        return { ...mountain, weather: "Unknown", hasSnow: false, forecastSnow: false, forecastDays: null };
+      } catch (err) {
+        console.error(`⚠️ Error fetching weather for ${mountain.name}:`, err.response?.status || err.message);
+        return { ...mountain, weather: "Unavailable", hasSnow: false, forecastSnow: false };
       }
     });
 
-    // Resolve all weather promises
-    const updatedMountains = await Promise.all(mountainWeatherPromises);
-    res.json(updatedMountains);
+    const result = await Promise.all(mountainWeatherPromises);
+    res.json(result);
 
-  } catch (error) {
-    console.error("Error retrieving mountains:", error.message);
-    res.status(500).json({ error: "Error retrieving mountains" });
+  } catch (err) {
+    console.error("Mountain fetch error:", err.message);
+    res.status(500).json({ message: "Error retrieving mountain data" });
   }
 };

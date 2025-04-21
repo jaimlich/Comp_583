@@ -8,10 +8,9 @@ const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const transporter = require("../utils/mailer");
 
-// ✅ Friendly sender display name
 const FROM_ADDRESS = `"SnowMT Team" <no.reply.at.snow.mountain.tracker@gmail.com>`;
 
-// 🔐 Register
+// register
 router.post("/register", async (req, res) => {
   const { name, email, password, confirmPassword } = req.body;
   console.log("📨 Register attempt:", req.body);
@@ -31,8 +30,8 @@ router.post("/register", async (req, res) => {
 
     const username = email.split("@")[0];
     const password_hash = await bcrypt.hash(password, 10);
-    const token = crypto.randomBytes(32).toString("hex");
     const role = "guest";
+    const token = crypto.randomBytes(32).toString("hex");
 
     await db.query(`
       INSERT INTO users (username, password_hash, email, role, email_verified, email_verification_token)
@@ -48,50 +47,20 @@ router.post("/register", async (req, res) => {
       subject: "✅ Verify your Snow Mountain Tracker account",
       html: `
         <p>Hello <strong>${username}</strong>,</p>
-        <p>Thanks for registering! Please verify your account below:</p>
+        <p>Thanks for registering! Please verify your account:</p>
         <a href="${verificationLink}" target="_blank">Click to verify</a>
-        <br/>
-        <small>This link expires after one use. If you didn’t register, ignore this email.</small>
+        <p><small>This link expires after use. If you didn’t register, ignore this email.</small></p>
       `
     });
 
-    res.status(201).json({
-      message: "Registration successful. Please check your email to verify your account."
-    });
-
+    res.status(201).json({ message: "Registration successful. Please check your email to verify." });
   } catch (err) {
     console.error("🔥 Registration error:", err);
-    res.status(500).json({
-      message: "Internal server error",
-      error: err.message,
-      stack: err.stack
-    });
+    res.status(500).json({ message: "Internal error", error: err.message });
   }
 });
 
-// ✅ Email verification
-router.get("/verify", async (req, res) => {
-  const { token } = req.query;
-  if (!token) return res.status(400).send("Invalid verification token");
-
-  try {
-    const [result] = await db.query(
-      "UPDATE users SET email_verified = TRUE, email_verification_token = NULL WHERE email_verification_token = ?",
-      [token]
-    );
-
-    if (result.affectedRows === 0) {
-      return res.status(400).send("Token expired or already used.");
-    }
-
-    res.send("✅ Email verified! You may now log in.");
-  } catch (err) {
-    console.error("Verification error:", err.message);
-    res.status(500).send("Error verifying account");
-  }
-});
-
-// ✅ Login route
+// login
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).json({ message: "Missing credentials" });
@@ -99,7 +68,6 @@ router.post("/login", async (req, res) => {
   try {
     const [rows] = await db.query("SELECT * FROM users WHERE email = ?", [email]);
     const user = rows[0];
-
     if (!user) return res.status(401).json({ message: "Invalid email or password" });
 
     const match = await bcrypt.compare(password, user.password_hash);
@@ -109,66 +77,128 @@ router.post("/login", async (req, res) => {
       return res.status(403).json({ message: "Please verify your email before logging in." });
     }
 
-    const token = jwt.sign({
+    const payload = {
       user_id: user.user_id,
       email: user.email,
-      email_verified: user.email_verified
-    }, process.env.JWT_SECRET, { expiresIn: "7d" });
+      role: user.role,
+      email_verified: true
+    };
+
+    const accessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "15m" });
+    const refreshToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "7d" });
+
+    res.setHeader("Set-Cookie", [
+      `token=${accessToken}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=900`,
+      `refreshToken=${refreshToken}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=604800`
+    ]);
 
     res.status(200).json({
       message: "Login successful",
-      token,
       user: {
         user_id: user.user_id,
         email: user.email,
-        name: user.username
+        name: user.username,
+        role: user.role
       }
     });
 
   } catch (err) {
     console.error("💥 Login error:", err);
-    res.status(500).json({ message: "Server error", error: err.message });
+    res.status(500).json({ message: "Login error", error: err.message });
   }
 });
 
-// ✅ Resend verification
+// email verification
+router.get("/verify", async (req, res) => {
+  const { token } = req.query;
+  if (!token) return res.status(400).send("Missing token");
+
+  try {
+    const [result] = await db.query(
+      "UPDATE users SET email_verified = TRUE, email_verification_token = NULL WHERE email_verification_token = ?",
+      [token]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(400).send("Invalid or expired token.");
+    }
+
+    res.redirect("/verify?status=success");
+  } catch (err) {
+    console.error("Email verify error:", err);
+    res.status(500).send("Error verifying email.");
+  }
+});
+
+// me
+const authMiddleware = require("../middleware/auth");
+router.get("/me", authMiddleware, async (req, res) => {
+  try {
+    const { user_id, email, role } = req.user;
+    res.json({ user: { user_id, email, role } });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to get user", error: err.message });
+  }
+});
+
+// logout
+router.post("/logout", (req, res) => {
+  res.setHeader("Set-Cookie", [
+    "token=; Path=/; HttpOnly; Max-Age=0; SameSite=Strict",
+    "refreshToken=; Path=/; HttpOnly; Max-Age=0; SameSite=Strict"
+  ]);
+  res.status(200).json({ message: "Logged out" });
+});
+
+// resend
 router.post("/resend-verification", async (req, res) => {
   const { email } = req.body;
-  if (!email) return res.status(400).json({ message: "Email is required" });
+  if (!email) return res.status(400).json({ message: "Email required" });
 
   try {
     const [[user]] = await db.query("SELECT * FROM users WHERE email = ?", [email]);
     if (!user) return res.status(404).json({ message: "User not found" });
-
-    if (user.email_verified) {
-      return res.status(400).json({ message: "Email already verified" });
-    }
+    if (user.email_verified) return res.status(400).json({ message: "Email already verified" });
 
     const token = crypto.randomBytes(32).toString("hex");
+    await db.query("UPDATE users SET email_verification_token = ? WHERE user_id = ?", [token, user.user_id]);
 
-    await db.query(
-      "UPDATE users SET email_verification_token = ? WHERE user_id = ?",
-      [token, user.user_id]
-    );
-
-    const link = `http://localhost:3000/verify?token=${token}`;
-
+    const verificationLink = `http://localhost:3000/verify?token=${token}`;
     await transporter.sendMail({
       from: FROM_ADDRESS,
       to: email,
-      subject: "🔁 Resend Verification - Snow Mountain Tracker",
+      subject: "🔁 Resend Verification",
       html: `
         <p>Hello <strong>${user.username}</strong>,</p>
-        <p>Please verify your email by clicking below:</p>
-        <a href="${link}" target="_blank">Verify your account</a>
+        <p>Click below to verify your email:</p>
+        <a href="${verificationLink}">Verify your account</a>
       `
     });
 
     res.json({ message: "Verification email resent." });
 
   } catch (err) {
-    console.error("📫 Resend error:", err);
-    res.status(500).json({ message: "Failed to resend verification email." });
+    res.status(500).json({ message: "Resend error", error: err.message });
+  }
+});
+
+// refresh
+router.post("/refresh-token", (req, res) => {
+  const refreshToken = req.cookies?.refreshToken;
+  if (!refreshToken) return res.status(401).json({ message: "No refresh token" });
+
+  try {
+    const payload = jwt.verify(refreshToken, process.env.JWT_SECRET);
+    const accessToken = jwt.sign({
+      user_id: payload.user_id,
+      email: payload.email,
+      role: payload.role
+    }, process.env.JWT_SECRET, { expiresIn: "15m" });
+
+    res.setHeader("Set-Cookie", `token=${accessToken}; Path=/; HttpOnly; Max-Age=900; SameSite=Strict`);
+    res.status(200).json({ message: "Refreshed" });
+  } catch (err) {
+    res.status(401).json({ message: "Invalid refresh token" });
   }
 });
 
