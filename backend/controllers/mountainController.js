@@ -29,7 +29,7 @@ exports.getMountains = async (req, res) => {
       const cached = cache.get(cacheKey);
       if (cached) return { ...mountain, ...cached };
 
-      const url = `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${mountain.latitude},${mountain.longitude}?unitGroup=us&include=days&key=${apiKey}&contentType=json`;
+      const url = `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${mountain.latitude},${mountain.longitude}?unitGroup=us&include=current,days&key=${apiKey}&contentType=json`;
 
       try {
         const { data } = await axios.get(url);
@@ -38,7 +38,7 @@ exports.getMountains = async (req, res) => {
         const forecastDays = upcomingSnowDayIndex !== -1 ? upcomingSnowDayIndex : null;
 
         const weatherData = {
-          weather: today.conditions || "Unknown",
+          weather: data.currentConditions?.conditions || null,
           temperature: today.temp,
           feelsLike: today.feelslike,
           snowfallCurrent: today.snowdepth || 0,
@@ -52,12 +52,12 @@ exports.getMountains = async (req, res) => {
           forecastDays,
         };
 
-        cache.set(cacheKey, weatherData); // store in cache
+        cache.set(cacheKey, weatherData);
         return { ...mountain, ...weatherData };
 
       } catch (err) {
         console.error(`⚠️ Error fetching weather for ${mountain.name}:`, err.response?.status || err.message);
-        return { ...mountain, weather: "Unavailable", hasSnow: false, forecastSnow: false };
+        return { ...mountain, hasSnow: false, forecastSnow: false };
       }
     });
 

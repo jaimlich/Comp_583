@@ -1,14 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const mountainController = require('../controllers/mountainController');
+const weatherSync = require('../jobs/weatherSync');
 
 router.get('/', mountainController.getMountains);
 
-router.get('/', (req, res) => {
+// New: Refresh weather data manually
+router.post('/refresh', async (req, res) => {
   try {
-    res.json(popularMountains);
-  } catch (error) {
-    res.status(500).json({ error: 'Error fetching mountains' });
+    await weatherSync.runOnce();
+    res.status(200).json({ message: 'Mountain weather refreshed.' });
+  } catch (err) {
+    console.error('❌ Manual weather refresh failed:', err.message);
+    res.status(500).json({ error: 'Failed to refresh weather' });
   }
 });
 

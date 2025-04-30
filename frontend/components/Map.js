@@ -1,4 +1,3 @@
-// frontend/components/Map.js
 import React, { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -22,7 +21,7 @@ const Map = ({ center, filters, onMountainHover, onMountainSelect, lockedMountai
     mapInstance.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: "mapbox://styles/mapbox/outdoors-v12",
-      center: [-97, 33],
+      center: [-97, 38],
       zoom: 3.7,
       maxBounds: US_BOUNDS,
       maxZoom: 10,
@@ -33,18 +32,25 @@ const Map = ({ center, filters, onMountainHover, onMountainSelect, lockedMountai
       mapInstance.current.resize();
       setMapReady(true);
 
-      mapInstance.current.addSource("mapbox-dem", {
+      mapInstance.current.addSource("terrain-dem", {
         type: "raster-dem",
         url: "mapbox://mapbox.terrain-rgb",
         tileSize: 512,
         maxzoom: 14,
       });
 
-      mapInstance.current.setTerrain({ source: "mapbox-dem", exaggeration: 1.5 });
+      mapInstance.current.addSource("hillshade-dem", {
+        type: "raster-dem",
+        url: "mapbox://mapbox.terrain-rgb",
+        tileSize: 512,
+        maxzoom: 14,
+      });
+
+      mapInstance.current.setTerrain({ source: "terrain-dem", exaggeration: 1.5 });
 
       mapInstance.current.addLayer({
         id: "hillshading",
-        source: "mapbox-dem",
+        source: "hillshade-dem",
         type: "hillshade",
         paint: { "hillshade-exaggeration": 0.5 },
       });
@@ -97,6 +103,7 @@ const Map = ({ center, filters, onMountainHover, onMountainSelect, lockedMountai
       const popupHTML = `
         <div style="border-radius: 10px; padding: 10px; background-color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.2); font-family: sans-serif; font-size: 14px;">
           <strong>${mountain.name}</strong><br/>
+          🌤️ ${mountain.weather}<br/>
           🌡️ ${mountain.temperature}°F<br/>
           ❄️ Snow Depth: ${mountain.snowfallCurrent || 0}"<br/>
           🌧️ Rain (24h): ${mountain.rainLast24h || 0}"<br/>

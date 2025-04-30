@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Head from "next/head";
 import {
   Box, TextField, Button, Typography, Container, Paper,
-  IconButton, Drawer, useMediaQuery, Menu, MenuItem, Avatar
+  IconButton, Drawer, useMediaQuery, Menu, MenuItem, Avatar, CircularProgress
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import MyLocationIcon from "@mui/icons-material/MyLocation";
@@ -35,6 +35,7 @@ const Home = () => {
   const [selectedMountain, setSelectedMountain] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
   const { user, logout } = useAuth();
   const { modalType, openModal, closeModal } = useModalStore();
   const theme = useTheme();
@@ -127,6 +128,23 @@ const Home = () => {
     handleMenuClose();
   };
 
+  const handleRefresh = async () => {
+    try {
+      setRefreshing(true);
+      const res = await fetch("/api/mountains/refresh", { method: "POST" });
+      if (!res.ok) throw new Error("Refresh failed");
+
+      const updated = await fetch("http://localhost:5000/api/mountains");
+      const data = await updated.json();
+      setMountains(data);
+    } catch (err) {
+      console.error("Error refreshing mountain weather:", err.message);
+      alert("Failed to refresh weather.");
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   const getInitials = () => {
     if (user?.name) return user.name[0].toUpperCase();
     return user?.email?.[0].toUpperCase() || "U";
@@ -161,12 +179,7 @@ const Home = () => {
           transition: "background-color 0.3s"
         }}
       >
-        <Typography
-          variant="h4"
-          sx={{
-            animation: "fadeInDown 0.5s ease-in-out"
-          }}
-        >
+        <Typography variant="h4" sx={{ animation: "fadeInDown 0.5s ease-in-out" }}>
           🏔️ Snow Mountain Tracker 🏔️
         </Typography>
 
@@ -192,7 +205,7 @@ const Home = () => {
         </Box>
       </Box>
 
-      <Container maxWidth="xl" sx={{ flex: 1, pt: "85px", pb: "1px"}} >
+      <Container maxWidth="xl" sx={{ flex: 1, pt: "85px", pb: "1px" }}>
         {/* Sidebar + Map */}
         <Box sx={{ display: "flex", gap: 2 }}>
           {isMobile ? (
@@ -203,6 +216,8 @@ const Home = () => {
                 hoveredMountain={hoveredMountain}
                 onMountainHover={handleMountainHover}
                 onMountainSelect={handleMountainSelect}
+                onRefresh={handleRefresh}
+                loading={refreshing}
               />
             </Drawer>
           ) : (
@@ -217,11 +232,15 @@ const Home = () => {
             }}>
               <Box sx={{ zIndex: 1, width: "100%" }}>
                 <Sidebar
+                  key={lockedMountain?.name || "sidebar"}
                   mountains={mountains}
                   setMapCenter={setMapCenter}
                   hoveredMountain={hoveredMountain}
+                  lockedMountain={lockedMountain}
                   onMountainHover={handleMountainHover}
                   onMountainSelect={handleMountainSelect}
+                  onRefresh={handleRefresh}
+                  loading={refreshing}
                 />
               </Box>
             </Box>
