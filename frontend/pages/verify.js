@@ -1,70 +1,92 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import { toast } from "react-toastify";
-import { CircularProgress, Typography, Box } from "@mui/material";
+import { CircularProgress, Typography, Box, Paper } from "@mui/material";
 import { useAuth } from "../context/AuthContext";
 import confetti from "canvas-confetti";
+import { useModalStore } from "../store/useModalStore";
 
 export default function VerifyPage() {
   const router = useRouter();
   const { setUser } = useAuth();
+  const { openModal } = useModalStore();
+  const [status, setStatus] = useState("loading");
+  const hasRun = useRef(false);
 
   useEffect(() => {
-    const runVerification = async () => {
-      if (typeof window === "undefined") return;
+    if (hasRun.current) return;
+    hasRun.current = true;
 
+    const runVerification = async () => {
       const token = new URLSearchParams(window.location.search).get("token");
       if (!token) {
-        toast.error("❌ Missing verification token.");
-        return router.push("/");
+        setStatus("error");
+        toast.error("❌ Missing token.");
+        return;
       }
 
       try {
-        const res = await fetch(`/api/auth/verify?token=${token}`);
-        const resultText = await res.text();
+        const res = await fetch(`/api/auth/verify-token?token=${token}`);
 
         if (res.ok) {
-          toast.success("✅ Email verified successfully!");
+          setStatus("success");
+          toast.success("✅ Email verified!");
+          confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
 
-          // 🎉 Fire confetti!
-          confetti({
-            particleCount: 100,
-            spread: 70,
-            origin: { y: 0.6 }
-          });
-
-          // Try auto-login if token is cookie-based
-          const userRes = await fetch("/api/auth/me");
-          if (userRes.ok) {
-            const userData = await userRes.json();
-            setUser(userData.user);
-            toast.success("🎉 You are now logged in.");
+          const me = await fetch("/api/auth/me");
+          if (me.ok) {
+            const result = await me.json();
+            setUser(result.user);
+          } else {
+            openModal("login");
           }
         } else {
-          toast.error(resultText || "❌ Invalid or expired token.");
+          const data = await res.json();
+          setStatus("error");
+          toast.error(data?.message || "❌ Invalid or expired token.");
+          openModal("login");
         }
-
-        router.push("/");
       } catch (err) {
-        console.error("Verification error:", err);
+        setStatus("error");
         toast.error("❌ Something went wrong.");
-        router.push("/");
+        openModal("login");
       }
+
+      setTimeout(() => {
+        router.replace("/");
+      }, 4000);
     };
 
     runVerification();
-  }, [router, setUser]);
+  }, [router, setUser, openModal]);
 
   return (
-    <Box
-      display="flex"
-      flexDirection="column"
-      alignItems="center"
-      justifyContent="center"
-      minHeight="60vh"
-    >
-      <CircularProgress size={40} sx={{ mb: 2 }} />
-      <Typography>Verifying your email, please wait...</Typography>
+    <Box minHeight="60vh" display="flex" alignItems="center" justifyContent="center">
+      <Paper sx={{ p: 4, textAlign: "center" }}>
+        {status === "loading" && (
+          <>
+            <CircularProgress sx={{ mb: 2 }} />
+            <Typography>Verifying your email...</Typography>
+          </>
+        )}
+        {status === "success" && (
+          <>
+            <Typography variant="h5" color="success.main" gutterBottom>
+              ✅ Email Verified
+            </Typography>
+            <Typography>Redirecting to homepage...</Typography>
+          </>
+        )}
+        {status === "error" && (
+          <>
+            <Typography variant="h5" color="error" gutterBottom>
+              ❌ Verification Failed
+            </Typography>
+            <Typography>Check your email link or log in manually.</Typography>
+            <Typography sx={{ mt: 2 }}>Redirecting shortly...</Typography>
+          </>
+        )}
+      </Paper>
     </Box>
   );
 }

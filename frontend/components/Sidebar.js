@@ -56,10 +56,10 @@ const Sidebar = ({
 
       const data = await refreshed.json();
       setLocalMountains(data);
-      toast.success("✅ Weather refreshed successfully!");
+      toast.success("Weather refreshed successfully!");
     } catch (err) {
       console.error("Error refreshing mountain weather:", err.message);
-      toast.error("❌ Failed to refresh weather.");
+      toast.error("Failed to refresh weather.");
     } finally {
       setRefreshing(false);
     }

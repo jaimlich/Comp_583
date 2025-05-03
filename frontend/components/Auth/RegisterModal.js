@@ -20,32 +20,59 @@ const RegisterModal = ({ onClose, onSwitchToLogin }) => {
     confirmPassword: ''
   });
   const [loading, setLoading] = useState(false);
+  const [emailError, setEmailError] = useState(null);
+  const [checkingEmail, setCheckingEmail] = useState(false);
 
   const handleChange = (e) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    if (e.target.name === 'email') setEmailError(null);
+  };
+
+  const checkEmailExists = async () => {
+    if (!formData.email) return;
+    setCheckingEmail(true);
+    try {
+      const res = await axios.get(`http://localhost:5000/api/auth/check-email?email=${encodeURIComponent(formData.email)}`);
+      if (res.data.exists) {
+        setEmailError("Email is already registered.");
+        toast.warn("⚠️ Email is already registered.");
+      } else {
+        setEmailError(null);
+      }
+    } catch (err) {
+      console.error("Email check failed:", err);
+      toast.error("❌ Could not check email.");
+    } finally {
+      setCheckingEmail(false);
+    }
   };
 
   const handleRegister = async () => {
     const { name, email, password, confirmPassword } = formData;
-  
+
     if (!name || !email || !password || !confirmPassword) {
       toast.error("⚠️ Please fill in all fields.");
       return;
     }
-  
+
     if (password !== confirmPassword) {
       toast.error("⚠️ Passwords do not match.");
       return;
     }
-  
+
+    if (emailError) {
+      toast.error("⚠️ Resolve email issue before submitting.");
+      return;
+    }
+
     try {
       setLoading(true);
       console.log("📤 Registering user with data:", formData);
-  
+
       const res = await axios.post('http://localhost:5000/api/auth/register', formData, {
         headers: { 'Content-Type': 'application/json' }
       });
-  
+
       toast.success(res.data.message || "🎉 Registered! Check your inbox.");
       onClose();
     } catch (err) {
@@ -54,7 +81,7 @@ const RegisterModal = ({ onClose, onSwitchToLogin }) => {
     } finally {
       setLoading(false);
     }
-  };  
+  };
 
   return (
     <Dialog open onClose={onClose} maxWidth="md" fullWidth>
@@ -89,6 +116,9 @@ const RegisterModal = ({ onClose, onSwitchToLogin }) => {
             value={formData.email}
             variant="outlined"
             fullWidth
+            error={!!emailError}
+            helperText={emailError}
+            onBlur={checkEmailExists}
             onChange={handleChange}
             InputProps={{
               startAdornment: (
@@ -149,7 +179,7 @@ const RegisterModal = ({ onClose, onSwitchToLogin }) => {
           variant="contained"
           fullWidth
           size="large"
-          disabled={loading}
+          disabled={loading || checkingEmail}
         >
           {loading ? "Registering..." : "Register"}
         </Button>

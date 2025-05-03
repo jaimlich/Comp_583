@@ -10,6 +10,10 @@ const transporter = require("../utils/mailer");
 
 const FROM_ADDRESS = `"SnowMT Team" <no.reply.at.snow.mountain.tracker@gmail.com>`;
 
+function isJsonRequest(req) {
+  return req.headers.accept?.includes("application/json");
+}
+
 // register
 router.post("/register", async (req, res) => {
   const { name, email, password, confirmPassword } = req.body;
@@ -109,24 +113,95 @@ router.post("/login", async (req, res) => {
 });
 
 // email verification
+// Handle GET /verify — used by email link
 router.get("/verify", async (req, res) => {
   const { token } = req.query;
   if (!token) return res.status(400).send("Missing token");
 
   try {
-    const [result] = await db.query(
-      "UPDATE users SET email_verified = TRUE, email_verification_token = NULL WHERE email_verification_token = ?",
-      [token]
-    );
+    const [users] = await db.query("SELECT * FROM users WHERE email_verification_token = ?", [token]);
+    const user = users[0];
 
-    if (result.affectedRows === 0) {
-      return res.status(400).send("Invalid or expired token.");
-    }
+    if (!user) return res.status(400).send("Invalid or expired token.");
+
+    if (user.email_verified) return res.redirect("/verify?status=success");
+
+    await db.query("UPDATE users SET email_verified = TRUE, email_verification_token = NULL WHERE user_id = ?", [user.user_id]);
+
+    const payload = {
+      user_id: user.user_id,
+      email: user.email,
+      role: user.role,
+      email_verified: true
+    };
+
+    const accessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "15m" });
+    const refreshToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "7d" });
+
+    res.cookie("token", accessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "Strict",
+      maxAge: 15 * 60 * 1000
+    });
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "Strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    });
 
     res.redirect("/verify?status=success");
   } catch (err) {
-    console.error("Email verify error:", err);
+    console.error("Email verification error:", err);
     res.status(500).send("Error verifying email.");
+  }
+});
+
+// Handle GET /verify-token — called by frontend API to fetch JSON
+router.get("/verify-token", async (req, res) => {
+  const { token } = req.query;
+  if (!token) return res.status(400).json({ message: "Missing token" });
+
+  try {
+    const [users] = await db.query("SELECT * FROM users WHERE email_verification_token = ?", [token]);
+    const user = users[0];
+
+    if (!user) return res.status(400).json({ message: "Invalid or expired token." });
+
+    if (user.email_verified) {
+      return res.status(200).json({ message: "Already verified", user });
+    }
+
+    await db.query("UPDATE users SET email_verified = TRUE, email_verification_token = NULL WHERE user_id = ?", [user.user_id]);
+
+    const payload = {
+      user_id: user.user_id,
+      email: user.email,
+      role: user.role,
+      email_verified: true
+    };
+
+    const accessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "15m" });
+    const refreshToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "7d" });
+
+    res.cookie("token", accessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "Strict",
+      maxAge: 15 * 60 * 1000
+    });
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "Strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+
+    res.status(200).json({ message: "Email verified", user: payload });
+  } catch (err) {
+    console.error("Verification API error:", err);
+    res.status(500).json({ message: "Error verifying token" });
   }
 });
 
@@ -138,6 +213,20 @@ router.get("/me", authMiddleware, async (req, res) => {
     res.json({ user: { user_id, email, role } });
   } catch (err) {
     res.status(500).json({ message: "Failed to get user", error: err.message });
+  }
+});
+
+// check-email (for real-time duplicate check)
+router.get("/check-email", async (req, res) => {
+  const { email } = req.query;
+  if (!email) return res.status(400).json({ exists: false });
+
+  try {
+    const [rows] = await db.query("SELECT email FROM users WHERE email = ?", [email]);
+    res.json({ exists: rows.length > 0 });
+  } catch (err) {
+    console.error("Email check error:", err);
+    res.status(500).json({ exists: false });
   }
 });
 

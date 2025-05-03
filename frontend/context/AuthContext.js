@@ -1,53 +1,54 @@
 // frontend/context/AuthContext.js
-import React, { createContext, useContext, useEffect, useState } from "react";
 
-const AuthContext = createContext();
+import { createContext, useState, useEffect, useContext } from "react";
+import axios from "axios";
+import { useModalStore } from "../store/useModalStore";
 
-export const useAuth = () => {
-  return useContext(AuthContext);
-};
+export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  const fetchUser = async () => {
-    try {
-      const res = await fetch("/api/auth/me");
-      if (!res.ok) {
-        if (res.status === 401) {
-          // Not logged in - safe fallback
-          setUser(null);
-          return;
-        }
-        throw new Error("Failed to fetch user info");
-      }
-      const data = await res.json();
-      setUser(data.user);
-    } catch (error) {
-      console.error("AuthContext fetchUser error:", error);
-      setUser(null);
-    }
-  };
+  const { openModal } = useModalStore();
 
   useEffect(() => {
-    fetchUser().finally(() => setLoading(false));
+    const fetchUser = async () => {
+      try {
+        const res = await fetch("/api/auth/me", {
+          credentials: "include" // ensure cookies are sent with request
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data.user);
+        } else {
+          setUser(null);
+        }
+      } catch (err) {
+        console.error("AuthContext: Failed to fetch user", err);
+        setUser(null);
+      }
+    };
+
+    fetchUser();
   }, []);
 
-  const logout = async () => {
-    try {
-      await fetch("/api/auth/logout", { method: "POST" });
-      setUser(null);
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
+  const login = async (email, password) => {
+    const res = await axios.post("/api/auth/login", { email, password });
+    setUser(res.data.user);
   };
 
-  const value = { user, loading, fetchUser, logout };
+  const logout = async () => {
+    await fetch("/api/auth/logout", {
+      method: "POST",
+      credentials: "include"
+    });
+    setUser(null);
+  };
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ user, setUser, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
 };
+
+export const useAuth = () => useContext(AuthContext);

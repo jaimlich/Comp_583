@@ -210,15 +210,21 @@ const Home = () => {
         <Box sx={{ display: "flex", gap: 2 }}>
           {isMobile ? (
             <Drawer anchor="left" open={sidebarOpen} onClose={() => setSidebarOpen(false)}>
-              <Sidebar
-                mountains={mountains}
-                setMapCenter={setMapCenter}
-                hoveredMountain={hoveredMountain}
-                onMountainHover={handleMountainHover}
-                onMountainSelect={handleMountainSelect}
-                onRefresh={handleRefresh}
-                loading={refreshing}
-              />
+              {mountains.length === 0 ? (
+                <Box display="flex" justifyContent="center" alignItems="center" height="300px" p={4}>
+                  <CircularProgress />
+                </Box>
+              ) : (
+                <Sidebar
+                  mountains={mountains}
+                  setMapCenter={setMapCenter}
+                  hoveredMountain={hoveredMountain}
+                  onMountainHover={handleMountainHover}
+                  onMountainSelect={handleMountainSelect}
+                  onRefresh={handleRefresh}
+                  loading={refreshing}
+                />
+              )}
             </Drawer>
           ) : (
             <Box sx={{
@@ -231,17 +237,23 @@ const Home = () => {
               }
             }}>
               <Box sx={{ zIndex: 1, width: "100%" }}>
-                <Sidebar
-                  key={lockedMountain?.name || "sidebar"}
-                  mountains={mountains}
-                  setMapCenter={setMapCenter}
-                  hoveredMountain={hoveredMountain}
-                  lockedMountain={lockedMountain}
-                  onMountainHover={handleMountainHover}
-                  onMountainSelect={handleMountainSelect}
-                  onRefresh={handleRefresh}
-                  loading={refreshing}
-                />
+                {mountains.length === 0 ? (
+                  <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+                    <CircularProgress />
+                  </Box>
+                ) : (
+                  <Sidebar
+                    key={lockedMountain?.name || "sidebar"}
+                    mountains={mountains}
+                    setMapCenter={setMapCenter}
+                    hoveredMountain={hoveredMountain}
+                    lockedMountain={lockedMountain}
+                    onMountainHover={handleMountainHover}
+                    onMountainSelect={handleMountainSelect}
+                    onRefresh={handleRefresh}
+                    loading={refreshing}
+                  />
+                )}
               </Box>
             </Box>
           )}
