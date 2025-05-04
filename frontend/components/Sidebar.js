@@ -7,13 +7,8 @@ import RefreshIcon from "@mui/icons-material/Refresh";
 import { toast } from "react-toastify";
 
 const icons = {
-  weather: "🌤️",
-  temperature: "🌡️",
-  snowfallCurrent: "❄️",
-  snowfallLast24h: "☃️",
-  rainLast24h: "🌧️",
-  visibility: "👀",
-  chainsRequired: "⛓️",
+  weather: "🌤️", temperature: "🌡️", snowfallCurrent: "❄️",
+  snowfallLast24h: "☃️", rainLast24h: "🌧️", visibility: "👀", chainsRequired: "⛓️",
 };
 
 const scrollToMountain = (name) => {
@@ -45,24 +40,27 @@ const Sidebar = ({
     } else alert("Missing coordinates.");
   };
 
-  const handleRefresh = async () => {
-    try {
-      setRefreshing(true);
-      const res = await fetch("/api/mountains/refresh", { method: "POST" });
-      if (!res.ok) throw new Error("Refresh failed");
+  const progressiveRefresh = async () => {
+    setRefreshing(true);
+    const updated = [];
 
-      const refreshed = await fetch("http://localhost:5000/api/mountains");
-      if (!refreshed.ok) throw new Error("Failed to reload data");
-
-      const data = await refreshed.json();
-      setLocalMountains(data);
-      toast.success("Weather refreshed successfully!");
-    } catch (err) {
-      console.error("Error refreshing mountain weather:", err.message);
-      toast.error("Failed to refresh weather.");
-    } finally {
-      setRefreshing(false);
+    for (const mtn of mountains) {
+      try {
+        await fetch(`/api/mountains/refresh-one?name=${encodeURIComponent(mtn.name)}`, {
+          method: "POST"
+        });
+        const reload = await fetch("http://localhost:5000/api/mountains");
+        const data = await reload.json();
+        const latest = data.find(x => x.name === mtn.name);
+        if (latest) updated.push(latest);
+      } catch (err) {
+        console.error("Refresh error:", err.message);
+      }
     }
+
+    setLocalMountains(updated);
+    setRefreshing(false);
+    toast.success("Weather data refreshed!");
   };
 
   return (
@@ -70,14 +68,14 @@ const Sidebar = ({
       <Box display="flex" alignItems="center" justifyContent="space-between" sx={{ mb: 0 }}>
         <Typography variant="h6">Popular Mountains</Typography>
         <Box textAlign="center">
-          <IconButton onClick={handleRefresh} size="small" sx={{ ml: 1 }}>
+          <IconButton onClick={progressiveRefresh} size="small" sx={{ ml: 1 }}>
             <RefreshIcon fontSize="small" />
           </IconButton>
           <Typography variant="caption" sx={{ fontSize: "11px" }}>Weather</Typography>
         </Box>
       </Box>
 
-      {loading || refreshing ? (
+      {(loading || refreshing) ? (
         <Box sx={{ display: "flex", justifyContent: "center", minHeight: "300px" }}>
           <CircularProgress />
         </Box>
@@ -119,7 +117,7 @@ const Sidebar = ({
                         {mtn.visibility != null && (
                           <Typography variant="body2">{icons.visibility} Visibility: {mtn.visibility} mi</Typography>
                         )}
-                        {mtn.forecastSnow === true && mtn.forecastDays != null && (
+                        {mtn.forecastSnow && mtn.forecastDays != null && (
                           <Typography variant="body2" color="primary">
                             ❄️ Snow expected in {mtn.forecastDays} days
                           </Typography>

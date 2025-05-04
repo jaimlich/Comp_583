@@ -20,35 +20,47 @@ export default function VerifyPage() {
     const runVerification = async () => {
       const token = new URLSearchParams(window.location.search).get("token");
       if (!token) {
-        setStatus("error");
         toast.error("❌ Missing token.");
+        setStatus("error");
         return;
       }
 
       try {
-        const res = await fetch(`/api/auth/verify-token?token=${token}`);
+        const res = await fetch(`/api/auth/verify-token?token=${token}`, {
+          method: "GET",
+          credentials: "include",
+        });
 
-        if (res.ok) {
-          setStatus("success");
-          toast.success("✅ Email verified!");
-          confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
-
-          const me = await fetch("/api/auth/me");
-          if (me.ok) {
-            const result = await me.json();
-            setUser(result.user);
-          } else {
-            openModal("login");
-          }
-        } else {
+        if (!res.ok) {
           const data = await res.json();
+          toast.error(data.message || "❌ Verification failed.");
           setStatus("error");
-          toast.error(data?.message || "❌ Invalid or expired token.");
+          openModal("login");
+          return;
+        }
+
+        toast.success("✅ Email verified!");
+        confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
+
+        const me = await fetch("/api/auth/me", {
+          method: "GET",
+          credentials: "include",
+        });
+
+        if (me.ok) {
+          const { user } = await me.json();
+          setUser(user);
+          console.log("✅ User logged in:", user);
+          setStatus("success");
+        } else {
+          toast.warn("⚠️ Verified, but not logged in.");
+          setStatus("error");
           openModal("login");
         }
       } catch (err) {
+        console.error("❌ Verification error:", err);
+        toast.error("❌ Could not verify.");
         setStatus("error");
-        toast.error("❌ Something went wrong.");
         openModal("login");
       }
 

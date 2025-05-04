@@ -19,6 +19,7 @@
         "canvas-confetti": "^1.9.3",
         "cookies": "^0.9.1",
         "dayjs": "^1.11.13",
+        "http-proxy-middleware": "^3.0.5",
         "jsonwebtoken": "^9.0.2",
         "mapbox-gl": "^2.15.0",
         "next": "^15.3.0",
