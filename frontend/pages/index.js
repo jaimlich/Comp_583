@@ -275,7 +275,7 @@ const Home = () => {
               </IconButton>
             </Paper>
 
-            <Box key={mapKey} sx={{ height: "48.3vh", borderRadius: 12, boxShadow: 4, position: "relative" }}>
+            <Box key={mapKey} sx={{ height: "64.8vh", borderRadius: 6, boxShadow: 4, position: "relative" }}>
               <MountainFilter filters={filters} setFilters={setFilters} />
               <Map
                 center={mapCenter}

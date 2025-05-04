@@ -32,86 +32,92 @@ const MountainFilter = ({ filters, setFilters }) => {
   return (
     <Box
       sx={{
-        p: 1.5,
+        p: 2,
         mb: 0,
         backgroundColor: "rgba(255,255,255,0.95)",
         boxShadow: 2,
-        borderRadius: "8px"
+        borderRadius: "6px"
       }}
     >
+      {/* Top row: Title on left, checkboxes + button on right */}
       <Box
         sx={{
           display: "flex",
           justifyContent: "space-between",
-          alignItems: "flex-start",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: 1,
           mb: 1
         }}
       >
-        <Typography variant="h6" sx={{ mt: 0.4 }}>
-          ⛷️ Mountain Filters
+        <Typography variant="h6" sx={{ whiteSpace: "nowrap" }}>
+          Mountain Filters
         </Typography>
-        <Button
-          variant="outlined"
-          size="small"
-          onClick={() => setFilters(defaultFilters)}
+
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: 2.5
+          }}
         >
-          RESET FILTERS
-        </Button>
+          <FormControlLabel
+            control={
+              <Checkbox
+                size="small"
+                checked={filters.showHasSnow}
+                onChange={handleCheckbox}
+                name="showHasSnow"
+              />
+            }
+            label="Currently has snow"
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                size="small"
+                checked={filters.showForecastSnow}
+                onChange={handleCheckbox}
+                name="showForecastSnow"
+              />
+            }
+            label="Forecasted to snow"
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                size="small"
+                checked={filters.showNoSnow}
+                onChange={handleCheckbox}
+                name="showNoSnow"
+              />
+            }
+            label="No snow"
+          />
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => setFilters(defaultFilters)}
+          >
+            RESET FILTERS
+          </Button>
+        </Box>
       </Box>
 
-      <Box
-        sx={{
-          display: "flex",
-          flexWrap: "wrap",
-          alignItems: "center",
-          gap: 2
-        }}
-      >
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={filters.showHasSnow}
-              onChange={handleCheckbox}
-              name="showHasSnow"
-            />
-          }
-          label="Currently has snow"
+      {/* Full-width Forecast Range Slider */}
+      <Box sx={{ width: "100%", mt: 0.5 }}>
+        <Typography variant="body2" sx={{ mb: 0.25 }}>
+          Forecast Range (days)
+        </Typography>
+        <Slider
+          value={filters.forecastDays}
+          onChange={handleSlider}
+          valueLabelDisplay="auto"
+          min={1}
+          max={7}
+          marks={sliderMarks}
         />
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={filters.showForecastSnow}
-              onChange={handleCheckbox}
-              name="showForecastSnow"
-            />
-          }
-          label="Forecasted to snow"
-        />
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={filters.showNoSnow}
-              onChange={handleCheckbox}
-              name="showNoSnow"
-            />
-          }
-          label="No snow"
-        />
-
-        <Box sx={{ minWidth: 220, flexGrow: 1 }}>
-          <Typography variant="body2" sx={{ mb: 0.5 }}>
-            Forecast Range (days)
-          </Typography>
-          <Slider
-            value={filters.forecastDays}
-            onChange={handleSlider}
-            valueLabelDisplay="auto"
-            min={1}
-            max={7}
-            marks={sliderMarks}
-            size="small"
-          />
-        </Box>
       </Box>
     </Box>
   );

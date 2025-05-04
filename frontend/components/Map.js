@@ -169,7 +169,7 @@ const Map = ({ center, filters, onMountainHover, onMountainSelect, lockedMountai
     }
   }, [center]);
 
-  return <div ref={mapContainer} style={{ width: "100%", height: "100%" }} />;
+  return <div ref={mapContainer} style={{ width: "100%", height: "81.3%" }} />;
 };
 
 export default Map;
