@@ -8,11 +8,13 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
+import { useNotification } from '../../context/NotificationContext';
 
 const LoginModal = ({ onClose, onSwitchToRegister }) => {
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const { showSnackbar } = useNotification();
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -22,15 +24,23 @@ const LoginModal = ({ onClose, onSwitchToRegister }) => {
 
     try {
       await login(email, password);
-      toast.success('🎉 Successfully logged in!');
-      onClose();
+      showSnackbar("🎉 Successfully logged in!", "success");
+      setTimeout(() => {
+        onClose();
+      }, 600); // delay close to ensure snackbar is visible
     } catch (err) {
       const msg = err?.response?.data?.message;
       if (msg?.includes("verify")) {
-        toast.warning("⚠️ Please verify your email.");
+        toast.warning("Please verify your email.");
       } else {
-        toast.error('❌ Login failed. Check credentials.');
+        showSnackbar("❌ Login failed. Check credentials.", "error");
       }
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      handleLogin();
     }
   };
 
@@ -53,7 +63,10 @@ const LoginModal = ({ onClose, onSwitchToRegister }) => {
           <CloseIcon />
         </IconButton>
       </DialogTitle>
-      <DialogContent sx={{ paddingTop: '48px !important', paddingX: '32px !important' }}>
+      <DialogContent
+        sx={{ paddingTop: '48px !important', paddingX: '32px !important' }}
+        onKeyDown={handleKeyDown}
+      >
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px !important' }}>
           <TextField
             label="Email Address"
@@ -90,7 +103,9 @@ const LoginModal = ({ onClose, onSwitchToRegister }) => {
         </Typography>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={handleLogin} variant="contained" fullWidth size="large">Login</Button>
+        <Button onClick={handleLogin} variant="contained" fullWidth size="large">
+          Login
+        </Button>
       </DialogActions>
     </Dialog>
   );

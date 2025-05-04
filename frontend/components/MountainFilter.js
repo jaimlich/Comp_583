@@ -30,40 +30,89 @@ const MountainFilter = ({ filters, setFilters }) => {
   }));
 
   return (
-    <Box sx={{ p: 2, mb: 0, backgroundColor: "rgba(255,255,255,0.95)", boxShadow: 2, borderRadius: "8px" }}>
-      <Typography variant="h6" gutterBottom>⛷️ Mountain Filters</Typography>
-
-      {/* Row: Checkboxes + Reset */}
-      <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", alignItems: "center", mb: 2 }}>
-        <FormControlLabel
-          control={<Checkbox checked={filters.showHasSnow} onChange={handleCheckbox} name="showHasSnow" />}
-          label="Currently has snow"
-        />
-        <FormControlLabel
-          control={<Checkbox checked={filters.showForecastSnow} onChange={handleCheckbox} name="showForecastSnow" />}
-          label="Forecasted to snow"
-        />
-        <FormControlLabel
-          control={<Checkbox checked={filters.showNoSnow} onChange={handleCheckbox} name="showNoSnow" />}
-          label="No snow"
-        />
-        <Button variant="outlined" size="small" onClick={() => setFilters(defaultFilters)}>
+    <Box
+      sx={{
+        p: 1.5,
+        mb: 0,
+        backgroundColor: "rgba(255,255,255,0.95)",
+        boxShadow: 2,
+        borderRadius: "8px"
+      }}
+    >
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          mb: 1
+        }}
+      >
+        <Typography variant="h6" sx={{ mt: 0.4 }}>
+          ⛷️ Mountain Filters
+        </Typography>
+        <Button
+          variant="outlined"
+          size="small"
+          onClick={() => setFilters(defaultFilters)}
+        >
           RESET FILTERS
         </Button>
       </Box>
 
-      {/* Forecast Slider */}
-      <Typography variant="body2" sx={{ mb: 1 }}>
-        Forecast Range (days)
-      </Typography>
-      <Slider
-        value={filters.forecastDays}
-        onChange={handleSlider}
-        valueLabelDisplay="auto"
-        min={1}
-        max={7}
-        marks={sliderMarks}
-      />
+      <Box
+        sx={{
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "center",
+          gap: 2
+        }}
+      >
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={filters.showHasSnow}
+              onChange={handleCheckbox}
+              name="showHasSnow"
+            />
+          }
+          label="Currently has snow"
+        />
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={filters.showForecastSnow}
+              onChange={handleCheckbox}
+              name="showForecastSnow"
+            />
+          }
+          label="Forecasted to snow"
+        />
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={filters.showNoSnow}
+              onChange={handleCheckbox}
+              name="showNoSnow"
+            />
+          }
+          label="No snow"
+        />
+
+        <Box sx={{ minWidth: 220, flexGrow: 1 }}>
+          <Typography variant="body2" sx={{ mb: 0.5 }}>
+            Forecast Range (days)
+          </Typography>
+          <Slider
+            value={filters.forecastDays}
+            onChange={handleSlider}
+            valueLabelDisplay="auto"
+            min={1}
+            max={7}
+            marks={sliderMarks}
+            size="small"
+          />
+        </Box>
+      </Box>
     </Box>
   );
 };
