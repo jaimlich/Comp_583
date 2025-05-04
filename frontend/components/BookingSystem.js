@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import {
   Box, TextField, Button, MenuItem, Typography, Paper,
   Divider, ToggleButton, ToggleButtonGroup, Dialog, DialogTitle,
-  DialogContent
+  DialogContent, Fade
 } from "@mui/material";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -10,6 +10,7 @@ import dayjs from "dayjs";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
+import confetti from "canvas-confetti";
 
 const BookingSystem = ({ mountains = [], selectedMountain }) => {
   const { user } = useAuth();
@@ -18,9 +19,9 @@ const BookingSystem = ({ mountains = [], selectedMountain }) => {
   const [slot, setSlot] = useState("AM");
   const [formData, setFormData] = useState({ mountain: "" });
   const [confirmation, setConfirmation] = useState(null);
-  const [availability, setAvailability] = useState({ AM: true, PM: true });
+  const [availability, setAvailability] = useState({ AM: 0, PM: 0 });
 
-  const mountain = mountains.find(m =>
+  const selectedMountainObj = mountains.find(m =>
     (m.id || m.name) === (formData.mountain || selectedMountain?.id || selectedMountain?.name)
   );
 
@@ -44,10 +45,17 @@ const BookingSystem = ({ mountains = [], selectedMountain }) => {
             reservation_date: selectedDate.format("YYYY-MM-DD")
           }
         });
-        setAvailability(res.data);
+        if (res.data) {
+          setAvailability({
+            AM: parseInt(res.data.AM) || 0,
+            PM: parseInt(res.data.PM) || 0
+          });
+        } else {
+          setAvailability({ AM: 0, PM: 0 });
+        }
       } catch (err) {
         console.error("Error checking availability", err);
-        setAvailability({ AM: true, PM: true });
+        setAvailability({ AM: 0, PM: 0 });
       }
     };
 
@@ -55,7 +63,7 @@ const BookingSystem = ({ mountains = [], selectedMountain }) => {
   }, [formData.mountain, selectedDate]);
 
   const handleSlotChange = (_, newSlot) => {
-    if (newSlot && availability[newSlot]) {
+    if (newSlot && availability[newSlot] > 0) {
       setSlot(newSlot);
     }
   };
@@ -64,6 +72,7 @@ const BookingSystem = ({ mountains = [], selectedMountain }) => {
     if (!user) return toast.error("Please login to book.");
     if (!formData.mountain) return toast.error("Please select a mountain.");
     if (!slot || !selectedDate) return toast.error("Choose date and time slot.");
+    if (availability[slot] <= 0) return toast.error("This time slot is full.");
 
     try {
       const response = await axios.post("/api/booking", {
@@ -73,7 +82,9 @@ const BookingSystem = ({ mountains = [], selectedMountain }) => {
         slot
       });
 
+      confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
       toast.success("Booking confirmed!");
+
       setConfirmation({
         qr_code_url: response.data.qr_code_url,
         mountain: formData.mountain,
@@ -101,60 +112,121 @@ const BookingSystem = ({ mountains = [], selectedMountain }) => {
     );
   }
 
+  const selectedLabel = selectedMountainObj?.name || formData.mountain;
+  const artworkUrl = slot === "AM"
+    ? "/assets/sunrise_clean_transparent.png"
+    : "/assets/night_clean_transparent.png";
+
   return (
-    <Paper sx={{ p: 3, borderRadius: "12px", boxShadow: 3, height: "100%" }}>
-      <Typography variant="h6" gutterBottom>
-        🎟️ Book Your Spot
-      </Typography>
+    <Paper
+      sx={{
+        p: 3,
+        borderRadius: "12px",
+        boxShadow: 3,
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between"
+      }}
+    >
+      <Box>
+        <Typography variant="h6" gutterBottom>🎟️ Book Your Spot</Typography>
 
-      <TextField
-        label="Select Mountain"
-        name="mountain"
-        select
-        value={formData.mountain}
-        onChange={e => setFormData({ ...formData, mountain: e.target.value })}
-        fullWidth
-        sx={{ mb: 2 }}
-      >
-        {mountains.map((mtn, i) => (
-          <MenuItem key={i} value={mtn.id || mtn.name}>
-            {mtn.name}
-          </MenuItem>
-        ))}
-      </TextField>
+        <TextField
+          label="Select Mountain"
+          name="mountain"
+          select
+          value={formData.mountain}
+          onChange={e => setFormData({ ...formData, mountain: e.target.value })}
+          fullWidth
+          sx={{ mb: 2 }}
+        >
+          {mountains.map((mtn, i) => (
+            <MenuItem key={i} value={mtn.id || mtn.name}>
+              {mtn.name}
+            </MenuItem>
+          ))}
+        </TextField>
 
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <DatePicker
-          label="Select date"
-          value={selectedDate}
-          onChange={newDate => setSelectedDate(newDate)}
-          sx={{ mb: 2, width: "100%" }}
-        />
-      </LocalizationProvider>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <DatePicker
+            label="Select date"
+            value={selectedDate}
+            onChange={newDate => setSelectedDate(newDate)}
+            sx={{ mb: 2, width: "100%" }}
+          />
+        </LocalizationProvider>
 
-      <Typography variant="subtitle1" gutterBottom>Select Time Slot</Typography>
-      <ToggleButtonGroup
-        value={slot}
-        exclusive
-        onChange={handleSlotChange}
-        fullWidth
-        sx={{ mb: 3 }}
-      >
-        <ToggleButton value="AM" disabled={!availability.AM}>AM</ToggleButton>
-        <ToggleButton value="PM" disabled={!availability.PM}>PM</ToggleButton>
-      </ToggleButtonGroup>
+        <Typography variant="subtitle1" gutterBottom>Select Time Slot</Typography>
+        <ToggleButtonGroup
+          value={slot}
+          exclusive
+          onChange={handleSlotChange}
+          fullWidth
+          sx={{ mb: 1 }}
+        >
+          {["AM", "PM"].map((time) => {
+            const count = availability[time];
+            const isLow = count > 0 && count <= 5;
+            const isFull = count <= 0;
 
-      <Divider sx={{ my: 2 }} />
+            return (
+              <ToggleButton
+                key={time}
+                value={time}
+                disabled={isFull}
+                sx={{
+                  fontWeight: isLow ? "bold" : "normal",
+                  color: isLow ? "orange" : "inherit"
+                }}
+              >
+                {time} ({isFull ? "FULL" : `${count} LEFT`})
+              </ToggleButton>
+            );
+          })}
+        </ToggleButtonGroup>
 
-      <Button
-        variant="contained"
-        fullWidth
-        color="primary"
-        onClick={handleBooking}
-        disabled={!availability[slot]}
-      >
-        Confirm Booking
-      </Button>
+        {/* Time Ranges */}
+        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+          <Typography variant="caption" color="text.secondary">06:00AM – 12:00PM</Typography>
+          <Typography variant="caption" color="text.secondary">12:00PM – 05:00PM</Typography>
+        </Box>
+
+        <Fade in timeout={400}>
+          <Box
+            sx={{
+              mt: 1,
+              width: "100%",
+              height: 180,
+              zoom: 1.3,
+              backgroundImage: `url(${artworkUrl})`,
+              backgroundSize: "cover",
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "center",
+              borderRadius: 3.5,
+              filter: "blur(0.2px)"
+            }}
+          />
+        </Fade>
+      </Box>
+
+      <Box>
+        <Divider sx={{ my: 2 }} />
+        <Typography variant="body2" align="center" color="text.secondary" sx={{ mb: 2 }}>
+          {selectedLabel && selectedDate
+            ? `You are booking ${selectedLabel} on ${selectedDate.format("MM/DD/YYYY")} (${slot})`
+            : `Select mountain, date, and time to continue.`}
+        </Typography>
+        <Button
+          variant="contained"
+          fullWidth
+          color="primary"
+          onClick={handleBooking}
+          disabled={availability[slot] <= 0}
+        >
+          Confirm Booking
+        </Button>
+      </Box>
     </Paper>
   );
 };

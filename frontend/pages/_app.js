@@ -26,6 +26,7 @@ export default function MyApp({ Component, pageProps }) {
             draggable
             pauseOnHover
             theme="light"
+            style={{ marginTop: "55px" }}
           />
         </NotificationProvider>
       </AuthProvider>

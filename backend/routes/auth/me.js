@@ -9,10 +9,7 @@ router.get("/", (req, res) => {
     .find((c) => c.trim().startsWith("token="))
     ?.split("=")[1];
 
-  console.log("🔐 /me extracted token from headers:", token);
-
   if (!token) {
-    console.warn("❌ /me: No token provided");
     return res.status(401).json({ message: "Not authenticated" });
   }
 
