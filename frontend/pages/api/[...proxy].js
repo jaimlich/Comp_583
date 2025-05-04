@@ -1,5 +1,4 @@
-// frontend/pages/api/auth/[...proxy].js
-import { createProxyMiddleware } from 'http-proxy-middleware';
+import { createProxyMiddleware } from "http-proxy-middleware";
 
 export const config = {
   api: {
@@ -9,22 +8,30 @@ export const config = {
 };
 
 const proxy = createProxyMiddleware({
-  target: 'http://localhost:5000', // your backend
+  target: "http://localhost:5000",
   changeOrigin: true,
   pathRewrite: {
-    '^/api/auth': '/api/auth',
+    "^/api": "/api",
   },
-  onProxyReq: (proxyReq, req) => {
-    // Fix cookie forwarding in dev
-    proxyReq.setHeader('origin', 'http://localhost:3000');
+  onProxyRes(proxyRes, req, res) {
+    const cookies = proxyRes.headers["set-cookie"];
+    if (cookies) {
+      // Patch each cookie: strip Secure, Domain, and adjust SameSite for localhost
+      const patchedCookies = cookies.map(cookie =>
+        cookie
+          .replace(/; Secure/gi, "") // 🔥 prevent blocking on localhost
+          .replace(/; SameSite=None/gi, "; SameSite=Lax")
+          .replace(/Domain=[^;]+;?/gi, "") // 🔥 strip Domain (conflicts with localhost)
+      );
+
+      res.setHeader("Set-Cookie", patchedCookies); // ✅ send patched cookies to browser
+    }
   },
 });
 
 export default function handler(req, res) {
-  return proxy(req, res, (err) => {
-    if (err) {
-      console.error('Proxy error:', err);
-      res.status(500).json({ error: 'Proxy error' });
-    }
+  return proxy(req, res, err => {
+    console.error("❌ Proxy error:", err);
+    res.status(500).json({ error: "Proxy error" });
   });
 }

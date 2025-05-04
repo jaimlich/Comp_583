@@ -18,30 +18,28 @@ export default function VerifyPage() {
     hasRun.current = true;
 
     const runVerification = async () => {
-      const token = new URLSearchParams(window.location.search).get("token");
-      if (!token) {
-        toast.error("❌ Missing token.");
-        setStatus("error");
-        return;
-      }
+      const query = new URLSearchParams(window.location.search);
+      const token = query.get("token");
+      const statusParam = query.get("status");
 
       try {
-        const res = await fetch(`/api/auth/verify-token?token=${token}`, {
-          method: "GET",
-          credentials: "include",
-        });
+        // ✅ Step 1: Try /api/auth/verify-token if token is present
+        if (token) {
+          const res = await fetch(`/api/auth/verify-token?token=${token}`, {
+            method: "GET",
+            credentials: "include",
+          });
 
-        if (!res.ok) {
-          const data = await res.json();
-          toast.error(data.message || "❌ Verification failed.");
-          setStatus("error");
-          openModal("login");
-          return;
+          if (!res.ok) {
+            const data = await res.json();
+            toast.error(data.message || "❌ Verification failed.");
+            setStatus("error");
+            openModal("login");
+            return;
+          }
         }
 
-        toast.success("✅ Email verified!");
-        confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
-
+        // ✅ Step 2: Try /api/auth/me to see if we’re logged in
         const me = await fetch("/api/auth/me", {
           method: "GET",
           credentials: "include",
@@ -50,16 +48,17 @@ export default function VerifyPage() {
         if (me.ok) {
           const { user } = await me.json();
           setUser(user);
-          console.log("✅ User logged in:", user);
+          toast.success("✅ Email verified!");
+          confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
           setStatus("success");
         } else {
-          toast.warn("⚠️ Verified, but not logged in.");
+          toast.warn("⚠️ Verified, but session failed. Please log in.");
           setStatus("error");
           openModal("login");
         }
       } catch (err) {
         console.error("❌ Verification error:", err);
-        toast.error("❌ Could not verify.");
+        toast.error("❌ Something went wrong.");
         setStatus("error");
         openModal("login");
       }

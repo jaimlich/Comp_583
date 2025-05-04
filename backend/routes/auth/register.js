@@ -29,13 +29,14 @@ router.post("/", async (req, res) => {
     const role = "guest";
     const token = crypto.randomBytes(32).toString("hex");
 
-    await db.query(`
-      INSERT INTO users (username, password_hash, email, role, email_verified, email_verification_token)
-      VALUES (?, ?, ?, ?, ?, ?)`,
+    await db.query(
+      `INSERT INTO users (username, password_hash, email, role, email_verified, email_verification_token)
+       VALUES (?, ?, ?, ?, ?, ?)`,
       [username, password_hash, email, role, false, token]
     );
 
-    const verificationLink = `http://localhost:3000/verify?token=${token}`;
+    // ✅ IMPORTANT: send them directly to backend for cookie setting
+    const verificationLink = `http://localhost:5000/api/auth/verify-token?token=${token}`;
 
     await transporter.sendMail({
       from: FROM_ADDRESS,

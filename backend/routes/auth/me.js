@@ -3,9 +3,16 @@ const router = express.Router();
 const jwt = require("jsonwebtoken");
 
 router.get("/", (req, res) => {
-  const token = req.cookies?.token;
+  const cookieHeader = req.headers.cookie || "";
+  const token = cookieHeader
+    .split(";")
+    .find((c) => c.trim().startsWith("token="))
+    ?.split("=")[1];
+
+  console.log("🔐 /me extracted token from headers:", token);
 
   if (!token) {
+    console.warn("❌ /me: No token provided");
     return res.status(401).json({ message: "Not authenticated" });
   }
 
@@ -20,6 +27,7 @@ router.get("/", (req, res) => {
       },
     });
   } catch (err) {
+    console.error("❌ /me: Invalid token", err.message);
     res.status(401).json({ message: "Invalid token" });
   }
 });

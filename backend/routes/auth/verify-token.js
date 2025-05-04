@@ -55,23 +55,35 @@ router.get("/", async (req, res) => {
 
     const isDev = process.env.NODE_ENV !== "production";
 
-    res.cookie("token", accessToken, {
+    const options = {
       httpOnly: true,
-      secure: !isDev ? true : false,
-      sameSite: isDev ? "Lax" : "Strict",
+      secure: false,
+      sameSite: "Lax",
       path: "/",
-      maxAge: 15 * 60 * 1000,
-    });
+      domain: "localhost",
+      maxAge: 15 * 60 * 1000
+    };
+    
+    res.cookie("token", accessToken, options);
+    res.cookie("refreshToken", refreshToken, { ...options, maxAge: 7 * 24 * 60 * 60 * 1000 });    
 
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: !isDev ? true : false,
-      sameSite: isDev ? "Lax" : "Strict",
-      path: "/",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    // res.cookie("token", accessToken, {
+    //   httpOnly: true,
+    //   secure: !isDev ? true : false,
+    //   sameSite: isDev ? "Lax" : "Strict",
+    //   path: "/",
+    //   maxAge: 15 * 60 * 1000,
+    // });
 
-    return res.status(200).json({ message: "Email verified" });
+    // res.cookie("refreshToken", refreshToken, {
+    //   httpOnly: true,
+    //   secure: !isDev ? true : false,
+    //   sameSite: isDev ? "Lax" : "Strict",
+    //   path: "/",
+    //   maxAge: 7 * 24 * 60 * 60 * 1000,
+    // });
+
+    return res.redirect("http://localhost:3000/verify?status=success");
   } catch (err) {
     console.error("❌ Fatal error in verify-token:", {
       message: err.message,
