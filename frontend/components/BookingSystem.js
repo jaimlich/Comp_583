@@ -157,39 +157,79 @@ const BookingSystem = ({ mountains = [], selectedMountain }) => {
           />
         </LocalizationProvider>
 
-        <Typography variant="subtitle1" gutterBottom>Select Time Slot</Typography>
+        <Typography variant="subtitle1" sx={{ mt: 0, mb: 0.5 }}>
+          Select Time Slot
+        </Typography>
+
         <ToggleButtonGroup
-          value={slot}
+          value={formData.mountain ? slot : null}
           exclusive
           onChange={handleSlotChange}
           fullWidth
-          sx={{ mb: 1 }}
+          sx={{
+            mb: 0.5,
+            borderRadius: 2,
+            overflow: "hidden",
+            boxShadow: "0 0 0 1px rgba(0,0,0,0.05)"
+          }}
         >
-          {["AM", "PM"].map((time) => {
-            const count = availability[time];
-            const isLow = count > 0 && count <= 5;
-            const isFull = count <= 0;
+        {["AM", "PM"].map((time) => {
+          const count = formData.mountain ? availability[time] : null;
+          const isLow = count > 0 && count <= 5;
+          const isFull = count === 0;
+          const isInactive = count === null;
+          const isSelected = slot === time;
+          const label = time === "AM" ? "6:00 AM – 12:00 PM" : "12:00 PM – 6:00 PM";
 
-            return (
-              <ToggleButton
-                key={time}
-                value={time}
-                disabled={isFull}
-                sx={{
-                  fontWeight: isLow ? "bold" : "normal",
-                  color: isLow ? "orange" : "inherit"
-                }}
-              >
-                {time} ({isFull ? "FULL" : `${count} LEFT`})
-              </ToggleButton>
-            );
-          })}
+          return (
+          <ToggleButton
+            key={time}
+            value={time}
+            disabled={isInactive || isFull}
+            sx={{
+              flex: 1,
+              border: "none",
+              borderRadius: 0,
+              py: 1.5,
+              fontWeight: isSelected ? "bold" : "normal",
+              color: isInactive
+                ? "#aaa"
+                : isSelected
+                ? "#fff"
+                : isLow
+                ? "orange"
+                : "inherit",
+              backgroundColor: isInactive
+                ? "#f0f0f0"
+                : isSelected
+                ? "#1976d2"
+                : "transparent",
+              transition: "all 0.3s ease",
+              "&:hover": {
+                backgroundColor:
+                  isInactive || isSelected ? undefined : "rgba(25, 118, 210, 0.1)",
+                transform: isInactive ? "none" : "scale(1.02)"
+              },
+              "&.Mui-selected": {
+                backgroundColor: "#1976d2 !important",
+                color: "#fff"
+              },
+              "&.Mui-disabled": {
+                color: "#ccc",
+                backgroundColor: "#f0f0f0",
+              }
+            }}
+          >
+          <span>{time} ({isInactive ? "—" : isFull ? "FULL" : `${count} LEFT`})</span>
+          </ToggleButton>
+          );
+        })}
         </ToggleButtonGroup>
 
         {/* Time Ranges */}
         <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
           <Typography variant="caption" color="text.secondary">06:00AM – 12:00PM</Typography>
-          <Typography variant="caption" color="text.secondary">12:00PM – 05:00PM</Typography>
+          <Typography variant="caption" color="text.secondary">12:00PM – 06:00PM</Typography>
         </Box>
 
         <Fade in timeout={400}>
