@@ -10,7 +10,7 @@ import Sidebar from "../components/Sidebar";
 import Map from "../components/Map";
 import MountainFilter from "../components/MountainFilter";
 import BookingSystem from "../components/BookingSystem";
-import Calendar from "../components/Calendar";
+import Calendar from "../components/Dashboard";
 import LoginModal from "../components/Auth/LoginModal";
 import RegisterModal from "../components/Auth/RegisterModal";
 import { useAuth } from "../context/AuthContext";

@@ -1,9 +1,5 @@
+// frontend/components/Dashboard.js
 import React, { useEffect, useState } from "react";
-import {
-  LocalizationProvider,
-  DateCalendar
-} from "@mui/x-date-pickers";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import {
   Typography,
   Divider,
@@ -14,31 +10,45 @@ import {
   DialogContent,
   Button,
   Chip,
-  Fade
+  Paper,
+  Fade,
+  MobileStepper
 } from "@mui/material";
 import { useAuth } from "../context/AuthContext";
 import { useModalStore } from "../store/useModalStore";
-import dayjs from "dayjs";
 import axios from "axios";
+import jsPDF from "jspdf";
+import { KeyboardArrowLeft, KeyboardArrowRight } from "@mui/icons-material";
+import { Slide } from "@mui/material";
 
-const testimonials = [
-  "“This app makes lift planning so much easier!”",
-  "“Booking a time slot saved us from long lines.”",
-  "“I love the QR code system. Smooth check-in!”",
-  "Book early to guarantee your favorite slot.",
-  "QR codes make lift access faster!",
-  "Bundle with gear rental for 10% off at checkout.",
-  "Check snow conditions before booking your ride.",
-  "Priority entry is included with your reservation."
+const walkthroughCards = [
+  {
+    title: "📋 Manage",
+    text: "Review past and upcoming reservations."
+  },
+  {
+    title: "📥 Download",
+    text: "Export your QR or print your ticket."
+  },
+  {
+    title: "💬 Alerts",
+    text: "Stay informed on snow or road changes."
+  }
 ];
 
-const Calendar = () => {
-  const [selectedDate, setSelectedDate] = useState(dayjs());
+const testimonials = [
+  "“QR-based access means faster lines.”",
+  "“Manage and cancel bookings any time.”",
+  "“Get notified of snow changes or chain alerts.”"
+];
+
+const Dashboard = () => {
   const { user } = useAuth();
   const { openModal } = useModalStore();
   const [bookings, setBookings] = useState([]);
   const [selectedQr, setSelectedQr] = useState(null);
   const [tipIndex, setTipIndex] = useState(0);
+  const [walkIndex, setWalkIndex] = useState(0);
 
   const fetchBookings = async () => {
     if (!user) return;
@@ -65,10 +75,11 @@ const Calendar = () => {
 
   useEffect(() => {
     if (!user) {
-      const rotateInterval = setInterval(() => {
-        setTipIndex(prev => (prev + 1) % testimonials.length);
-      }, 4200); // ⏱️ tip interval duration
-      return () => clearInterval(rotateInterval);
+      const rotate = setInterval(() => {
+        setTipIndex((prev) => (prev + 1) % testimonials.length);
+        setWalkIndex((prev) => (prev + 1) % walkthroughCards.length);
+      }, 5000);
+      return () => clearInterval(rotate);
     }
   }, [user]);
 
@@ -81,52 +92,29 @@ const Calendar = () => {
     }
   };
 
+  const handleDownload = (bk) => {
+    const doc = new jsPDF();
+    doc.text(`🎿 Lift Ticket`, 10, 10);
+    doc.text(`Mountain: ${bk.mountain_name}`, 10, 20);
+    doc.text(`Date: ${bk.reservation_date}`, 10, 30);
+    doc.text(`Time: ${bk.slot === "AM" ? "6:00 AM – 11:59 AM" : "12:00 PM – 5:00 PM"}`, 10, 40);
+    doc.text(`Ticket ID: ${bk.booking_id}`, 10, 50);
+    doc.save(`ticket-${bk.booking_id}.pdf`);
+  };
+
   const slotDisplay = (slot) => {
-    const label = slot === "AM" ? "6:00 AM - 11:59 AM" : "12:00 PM - 5:00 PM";
+    const label = slot === "AM" ? "6:00 AM – 11:59 AM" : "12:00 PM – 5:00 PM";
     const color = slot === "AM" ? "primary" : "secondary";
     return <Chip label={`${slot} (${label})`} size="small" color={color} />;
   };
 
   return (
-    <Box sx={{ p: 1 }}>
+    <Box sx={{ p: 2 }}>
       <Typography variant="h6" gutterBottom>
-        📅 Select a Date for Booking
+        📋 Your Booking Dashboard
       </Typography>
 
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <DateCalendar
-      value={selectedDate}
-      onChange={(newValue) => setSelectedDate(newValue)}
-      sx={{
-        width: "100%",
-        background: "#fff",
-        borderRadius: 3,
-        boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-        border: "1px solid rgba(0,0,0,0.06)",
-        p: 2,
-        ".MuiDayCalendar-weekContainer": {
-          justifyContent: "space-between",
-          gap: "4px",
-          borderBottom: "1px solid rgba(0,0,0,0.05)"
-        },
-        ".MuiDayCalendar-weekContainer:last-of-type": {
-          borderBottom: "none"
-        },
-        ".MuiDayCalendar-header": {
-          justifyContent: "space-between",
-          borderBottom: "1px solid rgba(0,0,0,0.08)",
-          pb: 0.5,
-          mb: 0.5
-        },
-        ".MuiPickersCalendarHeader-root": {
-          borderBottom: "1px solid rgba(0,0,0,0.08)",
-          mb: 1
-        }
-      }}
-      />
-      </LocalizationProvider>
-
-      <Divider sx={{ my: 3, borderColor: "rgba(0,0,0,0.1)" }} />
+      <Divider sx={{ my: 2 }} />
 
       {user ? (
         <>
@@ -137,13 +125,14 @@ const Calendar = () => {
             <Typography variant="body2">No bookings yet.</Typography>
           ) : (
             bookings.map((bk, i) => (
-              <Box
+              <Paper
                 key={i}
                 sx={{
-                  border: "1px solid rgba(0,0,0,0.1)",
-                  p: 1.5,
-                  borderRadius: 1,
-                  mb: 1
+                  p: 2,
+                  mb: 2,
+                  border: "1px solid rgba(0,0,0,0.06)",
+                  borderRadius: 2,
+                  background: "#fdfdfd"
                 }}
               >
                 <Typography variant="subtitle2">⛷️ {bk.mountain_name}</Typography>
@@ -165,42 +154,78 @@ const Calendar = () => {
                   >
                     Cancel
                   </Link>
+                  <Link
+                    onClick={() => handleDownload(bk)}
+                    sx={{ cursor: "pointer", fontSize: 14 }}
+                  >
+                    Download PDF
+                  </Link>
                 </Box>
-              </Box>
+              </Paper>
             ))
           )}
         </>
       ) : (
         <>
-          <Typography variant="body1" align="center" sx={{ mb: 2 }}>
+          <Typography variant="body1" align="center" sx={{ mb: 2.5 }}>
             <Link onClick={() => openModal("login")} sx={{ cursor: "pointer" }}>
               Login
             </Link>{" "}
-            to view your upcoming bookings
+            to view your dashboard.
           </Typography>
+
+          <Box sx={{ textAlign: "center", mb: 2.5 }}>
+            <Slide in direction="left" key={walkIndex}>
+              <Paper
+                elevation={2}
+                sx={{
+                  display: "inline-block",
+                  px: 4,
+                  py: 2,
+                  minWidth: 280,
+                  maxWidth: 800,
+                  transition: "all 0.5s ease-in-out"
+                }}
+              >
+                <Typography variant="h6" gutterBottom>
+                  {walkthroughCards[walkIndex].title}
+                </Typography>
+                <Typography variant="body2">
+                  {walkthroughCards[walkIndex].text}
+                </Typography>
+                <MobileStepper
+                  steps={walkthroughCards.length}
+                  position="static"
+                  activeStep={walkIndex}
+                  nextButton={<></>}
+                  backButton={<></>}
+                  sx={{ justifyContent: "center", pt: 28, px: 44, background: "none" }}
+                />
+              </Paper>
+            </Slide>
+          </Box>
 
           <Box
             sx={{
-              px: 3,
-              py: 4,
+              px: 1,
+              py: 3,
               backgroundColor: "#f7f9fc",
               border: "1px solid rgba(0,0,0,0.05)",
               borderRadius: 2,
               textAlign: "center",
-              transition: "all 2.0s ease"
+              mt: 1,
+              minHeight: 140
             }}
           >
-            <Fade in key={tipIndex} timeout={800}>
+            <Fade in key={tipIndex} timeout={1000}>
               <Box>
                 <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                  ❄️ Ready to ride?
+                  ❄️ Why sign up?
                 </Typography>
                 <Typography variant="body2" sx={{ mb: 2 }}>
                   {testimonials[tipIndex]}
                 </Typography>
-                <Button variant="contained" onClick={() => openModal("register")}>
-                  Register Now
-                </Button>
+                <Button variant="contained" onClick={() => openModal("register")}>Register Now</Button>
               </Box>
             </Fade>
           </Box>
@@ -232,4 +257,4 @@ const Calendar = () => {
   );
 };
 
-export default Calendar;
+export default Dashboard;
