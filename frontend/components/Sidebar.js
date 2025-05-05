@@ -115,16 +115,13 @@ const Sidebar = ({
                         <Typography variant="body2">{icons.snowfallLast24h} Snow (24h): {mtn.snowfallLast24h || 0} in</Typography>
                         <Typography variant="body2">{icons.rainLast24h} Rain (24h): {mtn.rainLast24h || 0} in</Typography>
                         {mtn.visibility != null && (
-                          <Typography variant="body2">{icons.visibility} Visibility: {mtn.visibility} mi</Typography>
-                        )}
-                        {mtn.forecastSnow && mtn.forecastDays != null && (
-                          <Typography variant="body2" color="primary">
-                            ❄️ Snow expected in {mtn.forecastDays} days
-                          </Typography>
-                        )}
-                        <Typography variant="body2" color={mtn.chainsRequired ? "error" : "inherit"}>
-                          {icons.chainsRequired} Chains Required: {mtn.chainsRequired ? "Yes" : "No"}
+                        <Typography variant="body2">
+                          {icons.visibility} Visibility: {mtn.visibility} mi
                         </Typography>
+                      )}
+                      <Typography variant="body2" color={mtn.chainsRequired ? "error" : "inherit"}>
+                        {icons.chainsRequired} Chains Required: {mtn.chainsRequired ? "Yes" : "No"}
+                      </Typography>
                       </Box>
                     }
                     primaryTypographyProps={{ component: "div" }}

@@ -293,7 +293,7 @@ const Home = () => {
             <BookingSystem mountains={mountains} selectedMountain={selectedMountain} />
           </Box>
           <Box sx={{ flex: 1.5 }}>
-            <Paper elevation={3} sx={{ height:"54.6vh", p: 3, borderRadius: 2, backgroundColor: "rgba(255,255,255,0.8)" }}>
+            <Paper elevation={3} sx={{ height:"54.5vh", p: 3, borderRadius: 2, backgroundColor: "rgba(255,255,255,0.8)" }}>
               <Calendar selectedDate={selectedDate} onDateChange={setSelectedDate} />
             </Paper>
           </Box>
