@@ -1,0 +1,41 @@
+{
+  "configurations" : [
+    {
+      "id" : "8829FA06-AB56-402B-A69E-46F0D543BD97",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "locationScenario" : {
+      "identifier" : "New York, NY, USA",
+      "referenceType" : "built-in"
+    },
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:COMP583.xcodeproj",
+      "identifier" : "34CDECF92D54436200E11DC8",
+      "name" : "COMP583"
+    }
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:COMP583.xcodeproj",
+        "identifier" : "34CDED092D54436400E11DC8",
+        "name" : "COMP583Tests"
+      }
+    },
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:COMP583.xcodeproj",
+        "identifier" : "34CDED132D54436400E11DC8",
+        "name" : "COMP583UITests"
+      }
+    }
+  ],
+  "version" : 1
+}
