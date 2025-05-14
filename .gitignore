@@ -1,7 +1,14 @@
-# ignore .venv (virtual enviornment) folder
-backend/.venv/*
-backend/.venv/**
-backend/.venv/**/*
+# Node modules
+node_modules/
 
-583
-backend/__pycache__/config.cpython-312.pyc
+# Environment files
+.env
+.env.local
+
+# Build outputs
+.next/
+dist/
+
+# vscode
+.vscode/
+vscode/
