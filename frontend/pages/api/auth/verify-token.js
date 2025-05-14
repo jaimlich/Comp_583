@@ -6,7 +6,7 @@ export default async function handler(req, res) {
   if (!token) return res.status(400).json({ message: "Missing token" });
 
   try {
-    const backend = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    const backendUrl = process.env.NEXT_PUBLIC_API_BASE;
     const response = await axios.get(`${backend}/api/auth/verify?token=${token}`, {
       withCredentials: true
     });

@@ -1,14 +1,16 @@
 import React, { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
+import { getTimeAgo } from "../utils/dateHelpers";
 
-const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+const baseUrl = process.env.NEXT_PUBLIC_API_BASE || "";
 
 const Map = ({ center, filters, onMountainHover, onMountainSelect, lockedMountain }) => {
   const mapContainer = useRef(null);
   const mapInstance = useRef(null);
   const popupRef = useRef(null);
   const [mountains, setMountains] = useState([]);
+  const [closures, setClosures] = useState([]);
   const [mapReady, setMapReady] = useState(false);
 
   const US_BOUNDS = [[-140, 10], [-50, 72]];
@@ -31,33 +33,43 @@ const Map = ({ center, filters, onMountainHover, onMountainSelect, lockedMountai
     mapInstance.current.on("load", () => {
       mapInstance.current.resize();
       setMapReady(true);
-
+    
+      // DEM source for terrain
       mapInstance.current.addSource("terrain-dem", {
         type: "raster-dem",
-        url: "mapbox://mapbox.terrain-rgb",
+        url: "mapbox://mapbox.mapbox-terrain-dem-v1",
         tileSize: 512,
         maxzoom: 14,
       });
-
+    
+      // DEM source for hillshade (separate instance)
       mapInstance.current.addSource("hillshade-dem", {
         type: "raster-dem",
-        url: "mapbox://mapbox.terrain-rgb",
+        url: "mapbox://mapbox.mapbox-terrain-dem-v1",
         tileSize: 512,
         maxzoom: 14,
       });
-
-      mapInstance.current.setTerrain({ source: "terrain-dem", exaggeration: 1.5 });
-
+    
+      // Apply terrain
+      mapInstance.current.setTerrain({
+        source: "terrain-dem",
+        exaggeration: 1.5,
+      });
+    
+      // Hillshade layer using different DEM source
       mapInstance.current.addLayer({
         id: "hillshading",
         source: "hillshade-dem",
         type: "hillshade",
-        paint: { "hillshade-exaggeration": 0.5 },
+        paint: {
+          "hillshade-exaggeration": 0.5,
+        },
       });
-
+    
+      // Hide Mapbox branding
       document.querySelectorAll(".mapboxgl-ctrl-bottom-left, .mapboxgl-ctrl-bottom-right")
         .forEach(el => el.style.display = "none");
-    });
+    });    
   }, []);
 
   useEffect(() => {
@@ -65,6 +77,14 @@ const Map = ({ center, filters, onMountainHover, onMountainSelect, lockedMountai
       .then((res) => res.ok ? res.json() : Promise.reject(res.statusText))
       .then(setMountains)
       .catch((err) => console.error("❌ Error fetching mountains:", err));
+
+    fetch(`${baseUrl}/api/road-closures`)
+      .then(res => res.ok ? res.json() : Promise.reject(res.statusText))
+      .then(data => {
+        console.log("🚧 Closures received:", data);
+        setClosures(data);
+      })
+      .catch(err => console.error("❌ Road closures fetch failed:", err));
   }, []);
 
   useEffect(() => {
@@ -78,6 +98,7 @@ const Map = ({ center, filters, onMountainHover, onMountainSelect, lockedMountai
 
     document.querySelectorAll(".mapboxgl-marker").forEach(el => el.remove());
 
+    // 🏔️ Mountain markers
     mountains.forEach((mountain) => {
       const show =
         (mountain.hasSnow && filters.showHasSnow) ||
@@ -108,7 +129,8 @@ const Map = ({ center, filters, onMountainHover, onMountainSelect, lockedMountai
           ❄️ Snow Depth: ${mountain.snowfallCurrent || 0}"<br/>
           🌧️ Rain (24h): ${mountain.rainLast24h || 0}"<br/>
           🌫️ Visibility: ${mountain.visibility} mi<br/>
-          🚗 Chains: ${mountain.chainsRequired ? "Yes" : "No"}
+          🚗 Chains: ${mountain.chainsRequired ? "Yes" : "No"}<br/>
+          <span style="color: #888; font-size: 12px;">Last updated: ${getTimeAgo(mountain.lastUpdated)}</span>
         </div>
       `;
 
@@ -141,23 +163,52 @@ const Map = ({ center, filters, onMountainHover, onMountainSelect, lockedMountai
   }, [mountains, filters, lockedMountain]);
 
   useEffect(() => {
-    if (!lockedMountain || !popupRef.current || !mapInstance.current) return;
+    if (!mapReady || !mapInstance.current) {
+      console.warn("⏳ Map not ready — skipping closure render");
+      return;
+    }
 
-    const popupHTML = `
-      <div style="border-radius: 10px; padding: 10px; background-color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.2); font-family: sans-serif; font-size: 14px;">
-        <strong>${lockedMountain.name}</strong><br/>
-        🌡️ ${lockedMountain.temperature}°F<br/>
-        ❄️ Snow Depth: ${lockedMountain.snowfallCurrent || 0}"<br/>
-        🌧️ Rain (24h): ${lockedMountain.rainLast24h || 0}"<br/>
-        🌫️ Visibility: ${lockedMountain.visibility} mi<br/>
-        🚗 Chains: ${lockedMountain.chainsRequired ? "Yes" : "No"}
-      </div>
-    `;
+    console.log("🔄 Rendering closures:", closures.length);
 
-    popupRef.current.setHTML(popupHTML);
-    popupRef.current.setLngLat([lockedMountain.longitude, lockedMountain.latitude]);
-    popupRef.current.addTo(mapInstance.current);
-  }, [lockedMountain]);
+    closures.forEach((closure) => {
+      if (!closure.lat || !closure.lon) return;
+
+      if (!mapInstance.current.loaded()) {
+        console.warn("⚠️ Map not fully loaded. Skipping:", closure.location);
+        return;
+      }
+
+      const el = document.createElement("div");
+      el.className = "closure-marker";
+      el.style.width = "32px";
+      el.style.height = "32px";
+      el.style.backgroundSize = "contain";
+      el.style.backgroundRepeat = "no-repeat";
+      el.style.cursor = "pointer";
+      el.style.animation = "pulse 1.6s infinite ease-in-out";
+      el.style.backgroundImage = `url(/icons/SVG/road_closure.svg)`;
+
+      // Fallback
+      el.style.backgroundColor = "rgba(255, 100, 100, 0.4)";
+      el.style.border = "1px solid red";
+      el.style.borderRadius = "50%";
+
+      const html = `
+        <div style="padding: 10px; background: #fff3f3; color: #000; border-radius: 8px; font-size: 13px;">
+          ⚠️ <strong>${closure.location}</strong><br/>
+          ${closure.details}<br/>
+          <a href="${closure.source}" target="_blank" style="color: #1976d2; text-decoration: underline;">View Source</a>
+        </div>
+      `;
+
+      console.log("📍 Creating closure marker:", closure.location, closure.lat, closure.lon);
+
+      new mapboxgl.Marker(el)
+        .setLngLat([closure.lon, closure.lat])
+        .setPopup(new mapboxgl.Popup({ offset: 20 }).setHTML(html))
+        .addTo(mapInstance.current);
+    });
+  }, [closures, mapReady]);
 
   useEffect(() => {
     if (mapInstance.current && center) {

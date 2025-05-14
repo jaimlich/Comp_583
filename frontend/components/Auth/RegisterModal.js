@@ -32,7 +32,7 @@ const RegisterModal = ({ onClose, onSwitchToLogin }) => {
     if (!formData.email) return;
     setCheckingEmail(true);
     try {
-      const res = await axios.get(`http://localhost:5000/api/auth/check-email?email=${encodeURIComponent(formData.email)}`);
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE}/api/auth/check-email?email=${encodeURIComponent(formData.email)}`);
       if (res.data.exists) {
         setEmailError("Email is already registered.");
         toast.warn("⚠️ Email is already registered.");
@@ -69,7 +69,7 @@ const RegisterModal = ({ onClose, onSwitchToLogin }) => {
       setLoading(true);
       console.log("📤 Registering user with data:", formData);
 
-      const res = await axios.post('http://localhost:5000/api/auth/register', formData, {
+      const res = await axios.post(`${process.env.NEXT_PUBLIC_API_BASE}/api/auth/register`, formData, {
         headers: { 'Content-Type': 'application/json' }
       });
 

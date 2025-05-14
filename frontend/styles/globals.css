@@ -1,3 +1,8 @@
+/* Apply global box-sizing for layout consistency */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 html, body, #__next {
   margin: 0;
   padding: 0;
@@ -10,26 +15,16 @@ html, body, #__next {
   position: relative;
 }
 
-/* body::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: -2;
-  opacity: 0.07;
-  background:
-    url("/icons/snowflakes.svg") left center / 120px repeat-y,
-    url("/icons/snowflakes.svg") right center / 120px repeat-y;
-  animation: scrollSnowflakes 60s linear infinite;
-  background-attachment: fixed;
-  pointer-events: none;
-} */
-
 @keyframes scrollSnowflakes {
   0% { background-position-y: 0; }
   100% { background-position-y: 100%; }
+}
+
+/* Map Pulse */
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.25); opacity: 0.6; }
+  100% { transform: scale(1); opacity: 1; }
 }
 
 /* Blur overlay */

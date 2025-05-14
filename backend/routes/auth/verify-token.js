@@ -57,10 +57,10 @@ router.get("/", async (req, res) => {
 
     const options = {
       httpOnly: true,
-      secure: false,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "Lax",
       path: "/",
-      domain: "localhost",
+      domain: process.env.COOKIE_DOMAIN,
       maxAge: 15 * 60 * 1000
     };
     
@@ -83,7 +83,7 @@ router.get("/", async (req, res) => {
     //   maxAge: 7 * 24 * 60 * 60 * 1000,
     // });
 
-    return res.redirect("http://localhost:3000/verify?status=success");
+    return res.redirect(`${process.env.FRONTEND_BASE_URL}/verify?status=success`);
   } catch (err) {
     console.error("❌ Fatal error in verify-token:", {
       message: err.message,

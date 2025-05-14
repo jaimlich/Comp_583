@@ -17,6 +17,16 @@ const scrollToMountain = (name) => {
   if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
 };
 
+const getTimeAgo = (isoDate) => {
+  if (!isoDate) return "Unknown";
+  const diff = Date.now() - new Date(isoDate).getTime();
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(minutes / 60);
+  if (hours >= 1) return `${hours} hour${hours !== 1 ? "s" : ""} ago`;
+  if (minutes >= 1) return `${minutes} minute${minutes !== 1 ? "s" : ""} ago`;
+  return "Just now";
+};
+
 const Sidebar = ({
   mountains, setMapCenter, hoveredMountain, lockedMountain,
   onMountainHover, onMountainSelect, loading = false
@@ -49,7 +59,7 @@ const Sidebar = ({
         await fetch(`/api/mountains/refresh-one?name=${encodeURIComponent(mtn.name)}`, {
           method: "POST"
         });
-        const reload = await fetch("http://localhost:5000/api/mountains");
+        const reload = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/mountains`);
         const data = await reload.json();
         const latest = data.find(x => x.name === mtn.name);
         if (latest) updated.push(latest);
@@ -115,13 +125,18 @@ const Sidebar = ({
                         <Typography variant="body2">{icons.snowfallLast24h} Snow (24h): {mtn.snowfallLast24h || 0} in</Typography>
                         <Typography variant="body2">{icons.rainLast24h} Rain (24h): {mtn.rainLast24h || 0} in</Typography>
                         {mtn.visibility != null && (
-                        <Typography variant="body2">
-                          {icons.visibility} Visibility: {mtn.visibility} mi
+                          <Typography variant="body2">
+                            {icons.visibility} Visibility: {mtn.visibility} mi
+                          </Typography>
+                        )}
+                        <Typography variant="body2" color={mtn.chainsRequired ? "error" : "inherit"}>
+                          {icons.chainsRequired} Chains Required: {mtn.chainsRequired ? "Yes" : "No"}
                         </Typography>
-                      )}
-                      <Typography variant="body2" color={mtn.chainsRequired ? "error" : "inherit"}>
-                        {icons.chainsRequired} Chains Required: {mtn.chainsRequired ? "Yes" : "No"}
-                      </Typography>
+                        {mtn.lastUpdated && (
+                          <Typography variant="caption" sx={{ color: "#888", mt: 0.5, display: "block" }}>
+                            Last updated: {getTimeAgo(mtn.lastUpdated)}
+                          </Typography>
+                        )}
                       </Box>
                     }
                     primaryTypographyProps={{ component: "div" }}

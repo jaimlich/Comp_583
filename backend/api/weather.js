@@ -1,6 +1,6 @@
 const axios = require('axios');
 const NodeCache = require("node-cache");
-const cache = new NodeCache({ stdTTL: 300 });
+const cache = new NodeCache({ stdTTL: 1800 }); // 30 minutes
 
 exports.getWeather = async (req, res) => {
   const { location } = req.query;

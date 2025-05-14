@@ -18,7 +18,7 @@ router.post("/", async (req, res) => {
     const token = crypto.randomBytes(32).toString("hex");
     await db.query("UPDATE users SET email_verification_token = ? WHERE user_id = ?", [token, user.user_id]);
 
-    const verificationLink = `http://localhost:3000/verify?token=${token}`;
+    const verificationLink = `${process.env.FRONTEND_BASE_URL}/verify?token=${token}`;
     await transporter.sendMail({
       from: FROM_ADDRESS,
       to: email,

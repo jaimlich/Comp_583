@@ -199,7 +199,7 @@ const Dashboard = () => {
                   activeStep={walkIndex}
                   nextButton={<></>}
                   backButton={<></>}
-                  sx={{ justifyContent: "center", pt: 28, px: 44, background: "none" }}
+                  sx={{ justifyContent: "center", pt: 30.5, px: 44, background: "none" }}
                 />
               </Paper>
             </Slide>
